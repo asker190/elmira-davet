@@ -1,23 +1,35 @@
 import { mockHalls } from "@/lib/mock-data";
-import { getPageContent } from "@/lib/cms/pages";
+import { getPageBySlug, extractStaticFields } from "@/lib/cms/page-service";
 import { HallCard } from "@/components/site/hall-card";
 import Link from "next/link";
-import { CalendarCheck2, Sparkles, MapPin } from "lucide-react";
+import { CalendarCheck2, MapPin } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
-  const page = await getPageContent("salonlar");
+  const page = await getPageBySlug("salonlar");
+  const fields = page ? extractStaticFields(page) : null;
   return {
-    title: page.seoTitle || "Salonlarımız & Kapasiteler | Elmira Davet Gaziosmanpaşa",
+    title: fields?.seoTitle || "Salonlarımız & Kapasiteler | Elmira Davet Gaziosmanpaşa",
     description:
-      page.seoDescription ||
+      fields?.seoDescription ||
       "Elmira Davet Salonu bünyesindeki 600 kişilik Kristal Salon ve 300 kişilik Kır Bahçesi alanlarımızı inceleyin.",
   };
 }
 
 export default async function HallsPage() {
-  const page = await getPageContent("salonlar");
+  const page = await getPageBySlug("salonlar");
+  const fields = page
+    ? extractStaticFields(page)
+    : {
+        title: "Salonlarımız & Davet Alanları",
+        subtitle: "İki Farklı Atmosfer, Tek Bir Zarafet",
+        badgeText: "İstanbul - Gaziosmanpaşa",
+        heroImageUrl: "",
+        bodyHtml: "",
+        seoTitle: "",
+        seoDescription: "",
+      };
 
   return (
     <div className="pt-28 pb-20 space-y-20">
@@ -25,15 +37,15 @@ export default async function HallsPage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface/80 border border-gold/30 text-gold text-xs tracking-widest uppercase">
           <MapPin className="w-3.5 h-3.5 text-gold" />
-          <span>{page.badgeText || "İstanbul - Gaziosmanpaşa"}</span>
+          <span>{fields.badgeText || "İstanbul - Gaziosmanpaşa"}</span>
         </div>
 
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading text-cream">
-          {page.title}
+          {fields.title}
         </h1>
         <div className="divider-gold" />
         <p className="text-text-secondary text-sm sm:text-base max-w-2xl mx-auto font-sans leading-relaxed">
-          {page.subtitle}
+          {fields.subtitle}
         </p>
       </section>
 

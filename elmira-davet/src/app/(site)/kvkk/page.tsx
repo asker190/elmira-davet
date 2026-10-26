@@ -1,25 +1,27 @@
 import { getSiteSettings } from "@/lib/settings";
-import { getPageContent } from "@/lib/cms/pages";
+import { getPageBySlug, extractStaticFields } from "@/lib/cms/page-service";
 import { ShieldCheck, Mail, Phone } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
-  const page = await getPageContent("kvkk");
+  const page = await getPageBySlug("kvkk");
+  const fields = page ? extractStaticFields(page) : null;
   return {
-    title: page.seoTitle || "KVKK Aydınlatma Metni | Elmira Davet",
+    title: fields?.seoTitle || "KVKK Aydınlatma Metni | Elmira Davet",
     description:
-      page.seoDescription ||
+      fields?.seoDescription ||
       "Elmira Davet Salonu 6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) kapsamındaki aydınlatma metni.",
   };
 }
 
 export default async function KvkkPage() {
-  const [settings, page] = await Promise.all([
+  const [settings, cmsPage] = await Promise.all([
     getSiteSettings(),
-    getPageContent("kvkk"),
+    getPageBySlug("kvkk"),
   ]);
+  const page = cmsPage ? extractStaticFields(cmsPage) : { title: "KVKK & Gizlilik Politikası", subtitle: "6698 Sayılı Kişisel Verilerin Korunması Kanunu Kapsamında Bilgilendirme", badgeText: "", heroImageUrl: "", bodyHtml: "", seoTitle: "", seoDescription: "" };
 
   const defaultKvkk = `KVKK AYDINLATMA METNİ
 
@@ -67,7 +69,7 @@ Haklarınıza ilişkin başvurularınızı ${settings.email || "info@elmira.com"
           <ShieldCheck className="w-6 h-6" />
         </div>
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading text-text-primary">
-          {page.title || "KVKK Aydınlatma Metni"}
+          {cmsPage?.title || "KVKK Aydınlatma Metni"}
         </h1>
         <div className="divider-gold" />
         <p className="text-text-secondary text-xs sm:text-sm max-w-xl mx-auto">

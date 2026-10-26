@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getPageContent } from "@/lib/cms/pages";
+import { getPageBySlug, extractStaticFields } from "@/lib/cms/page-service";
 import { Star, MessageSquareQuote, CalendarCheck2 } from "lucide-react";
 import Link from "next/link";
 
@@ -8,25 +8,27 @@ import { mockTestimonials } from "@/lib/mock-data";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
-  const page = await getPageContent("referanslar");
+  const page = await getPageBySlug("referanslar");
+  const fields = page ? extractStaticFields(page) : null;
   return {
-    title: page.seoTitle || "Müşteri Yorumları & Referanslar | Elmira Davet",
+    title: fields?.seoTitle || "Müşteri Yorumları & Referanslar | Elmira Davet",
     description:
-      page.seoDescription ||
+      fields?.seoDescription ||
       "Elmira Davet Salonu'nda dünyaevine giren mutlu çiftlerimizin ve misafirlerimizin samimi değerlendirmeleri.",
   };
 }
 
 export default async function TestimonialsPage() {
-  const [dbTestimonials, page] = await Promise.all([
+  const [dbTestimonials, cmsPage] = await Promise.all([
     prisma.testimonial
       .findMany({
         where: { isActive: true },
         orderBy: { sortOrder: "asc" },
       })
       .catch(() => []),
-    getPageContent("referanslar"),
+    getPageBySlug("referanslar"),
   ]);
+  const page = cmsPage ? extractStaticFields(cmsPage) : { title: "Mutlu Çiftlerimiz & Yorumlar", subtitle: "Misafirlerimizin samimi deneyimleri", badgeText: "Gerçek Deneyimler", heroImageUrl: "", bodyHtml: "", seoTitle: "", seoDescription: "" };
 
   const testimonials =
     dbTestimonials.length > 0 ? dbTestimonials : mockTestimonials;
@@ -39,7 +41,7 @@ export default async function TestimonialsPage() {
           {page.badgeText || "Gerçek Deneyimler"}
         </span>
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading text-text-primary">
-          {page.title}
+          {cmsPage?.title || page.title}
         </h1>
         <div className="divider-gold" />
         <p className="text-text-secondary text-sm sm:text-base max-w-2xl mx-auto">

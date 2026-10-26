@@ -1,22 +1,23 @@
 import { prisma } from "@/lib/prisma";
-import { getPageContent } from "@/lib/cms/pages";
+import { getPageBySlug, extractStaticFields } from "@/lib/cms/page-service";
 import { MasonryGallery } from "@/components/site/masonry-gallery";
 import { mockGalleryCategories, mockGalleryImages } from "@/lib/mock-data";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
-  const page = await getPageContent("galeri");
+  const page = await getPageBySlug("galeri");
+  const fields = page ? extractStaticFields(page) : null;
   return {
-    title: page.seoTitle || "Fotoğraf Galerisi | Elmira Davet Gaziosmanpaşa",
+    title: fields?.seoTitle || "Fotoğraf Galerisi | Elmira Davet Gaziosmanpaşa",
     description:
-      page.seoDescription ||
+      fields?.seoDescription ||
       "Kristal Salon ve Kır Bahçesi fotoğrafları, düğün masası süslemeleri ve gelin yolu detayları.",
   };
 }
 
 export default async function GalleryPage() {
-  const [dbCategories, dbImages, page] = await Promise.all([
+  const [dbCategories, dbImages, cmsPage] = await Promise.all([
     prisma.galleryCategory
       .findMany({
         orderBy: { sortOrder: "asc" },
@@ -28,8 +29,9 @@ export default async function GalleryPage() {
         orderBy: { sortOrder: "asc" },
       })
       .catch(() => []),
-    getPageContent("galeri"),
+    getPageBySlug("galeri"),
   ]);
+  const page = cmsPage ? extractStaticFields(cmsPage) : { title: "Fotoğraf & Video Galerisi", subtitle: "Kristal Salon ve Kır Bahçesi görüntüleri", badgeText: "Görsel Deneyim", heroImageUrl: "", bodyHtml: "", seoTitle: "", seoDescription: "" };
 
   const categories = dbCategories.length > 0 ? dbCategories : mockGalleryCategories;
   const images = dbImages.length > 0 ? dbImages : mockGalleryImages;
@@ -42,7 +44,7 @@ export default async function GalleryPage() {
           {page.badgeText || "Görsel Deneyim"}
         </span>
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading text-cream">
-          {page.title}
+          {cmsPage?.title || page.title}
         </h1>
         <div className="divider-gold" />
         <p className="text-text-secondary text-sm sm:text-base max-w-2xl mx-auto font-sans leading-relaxed">

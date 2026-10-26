@@ -1,23 +1,24 @@
 import { mockFaqs } from "@/lib/mock-data";
-import { getPageContent } from "@/lib/cms/pages";
+import { getPageBySlug, extractStaticFields } from "@/lib/cms/page-service";
 import { HelpCircle, CalendarCheck2, Phone } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
-  const page = await getPageContent("sss");
+  const page = await getPageBySlug("sss");
+  const fields = page ? extractStaticFields(page) : null;
   return {
-    title: page.seoTitle || "Sıkça Sorulan Sorular | Elmira Davet Gaziosmanpaşa",
+    title: fields?.seoTitle || "Sıkça Sorulan Sorular | Elmira Davet Gaziosmanpaşa",
     description:
-      page.seoDescription ||
+      fields?.seoDescription ||
       "Elmira Davet Salonu rezervasyon, menü tadımı, otopark, salon kapasitesi ve fiyatlandırma hakkında merak edilen tüm sorular.",
   };
 }
 
 export default async function FaqPage() {
-  const page = await getPageContent("sss");
-
+  const cmsPage = await getPageBySlug("sss");
+  const page = cmsPage ? extractStaticFields(cmsPage) : { title: "Sıkça Sorulan Sorular", subtitle: "Merak ettiklerinizin cevapları", badgeText: "Aklınıza Takılanlar", heroImageUrl: "", bodyHtml: "", seoTitle: "", seoDescription: "" };
   return (
     <div className="pt-28 pb-20 space-y-20">
       {/* Header Banner */}
@@ -26,7 +27,7 @@ export default async function FaqPage() {
           {page.badgeText || "Aklınıza Takılanlar"}
         </span>
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading text-cream">
-          {page.title}
+          {cmsPage?.title || page.title}
         </h1>
         <div className="divider-gold" />
         <p className="text-text-secondary text-sm sm:text-base max-w-2xl mx-auto font-sans leading-relaxed">

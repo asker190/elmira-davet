@@ -440,7 +440,7 @@ async function getLocalPages(): Promise<PageData[]> {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
     }
-  } catch {}
+  } catch { }
 
   // If local store is empty or missing, populate with default seed pages!
   const seedPages = getDefaultSeedPages();
@@ -471,9 +471,9 @@ export async function getPageLock(pageId: string): Promise<PageLockData | null> 
         };
       } else if (lock) {
         // Expired lock: remove automatically
-        await prisma.pageLock.delete({ where: { pageId } }).catch(() => {});
+        await prisma.pageLock.delete({ where: { pageId } }).catch(() => { });
       }
-    } catch {}
+    } catch { }
   }
 
   // Fallback to local store locks
@@ -485,7 +485,7 @@ export async function getPageLock(pageId: string): Promise<PageLockData | null> 
         return parsed;
       }
     }
-  } catch {}
+  } catch { }
 
   return null;
 }
@@ -515,7 +515,7 @@ export async function acquirePageLock(
         update: { userId, userName, expiresAt },
         create: { pageId, userId, userName, expiresAt },
       });
-    } catch {}
+    } catch { }
   }
 
   await setSafeSetting(`lock_${pageId}`, JSON.stringify(lockData));
@@ -540,7 +540,7 @@ export async function renewPageLock(
         where: { pageId },
         data: { expiresAt },
       });
-    } catch {}
+    } catch { }
   }
 
   await setSafeSetting(`lock_${pageId}`, JSON.stringify(currentLock));
@@ -555,8 +555,8 @@ export async function releasePageLock(
   if (currentLock && currentLock.userId === userId) {
     if (await isDatabaseReachable()) {
       try {
-        await prisma.pageLock.delete({ where: { pageId } }).catch(() => {});
-      } catch {}
+        await prisma.pageLock.delete({ where: { pageId } }).catch(() => { });
+      } catch { }
     }
     await setSafeSetting(`lock_${pageId}`, "");
   }
@@ -582,7 +582,7 @@ export async function forceTakeoverLock(
         update: { userId: newUserId, userName: newUserName, expiresAt },
         create: { pageId, userId: newUserId, userName: newUserName, expiresAt },
       });
-    } catch {}
+    } catch { }
   }
 
   await setSafeSetting(`lock_${pageId}`, JSON.stringify(lockData));
@@ -671,7 +671,7 @@ export async function createPageRevision(
   if (raw) {
     try {
       localRevs = JSON.parse(raw);
-    } catch {}
+    } catch { }
   }
 
   const newRev: PageRevisionData = {
@@ -715,14 +715,14 @@ export async function getPageRevisions(
           createdAt: r.createdAt.toISOString(),
         }));
       }
-    } catch {}
+    } catch { }
   }
 
   const raw = await getSafeSetting(`revisions_${pageId}`);
   if (raw) {
     try {
       return JSON.parse(raw);
-    } catch {}
+    } catch { }
   }
   return [];
 }
@@ -806,11 +806,11 @@ export async function getAllPages(options?: {
           updatedAt: p.updatedAt.toISOString(),
           lock: isLockActive
             ? {
-                pageId: lock.pageId,
-                userId: lock.userId,
-                userName: lock.userName,
-                expiresAt: lock.expiresAt.toISOString(),
-              }
+              pageId: lock.pageId,
+              userId: lock.userId,
+              userName: lock.userName,
+              expiresAt: lock.expiresAt.toISOString(),
+            }
             : null,
         };
       });
@@ -886,15 +886,15 @@ export async function getPageById(id: string): Promise<PageData | null> {
           updatedAt: p.updatedAt.toISOString(),
           lock: isLockActive
             ? {
-                pageId: lock.pageId,
-                userId: lock.userId,
-                userName: lock.userName,
-                expiresAt: lock.expiresAt.toISOString(),
-              }
+              pageId: lock.pageId,
+              userId: lock.userId,
+              userName: lock.userName,
+              expiresAt: lock.expiresAt.toISOString(),
+            }
             : null,
         };
       }
-    } catch {}
+    } catch { }
   }
 
   const local = await getLocalPages();
@@ -957,7 +957,7 @@ export async function getPageBySlug(slug: string): Promise<PageData | null> {
           updatedAt: p.updatedAt.toISOString(),
         };
       }
-    } catch {}
+    } catch { }
   }
 
   const local = await getLocalPages();
@@ -1134,7 +1134,7 @@ export async function updatePage(
     if (oldPath !== newPath) {
       try {
         await registerPageRedirect(id, oldPath, newPath);
-      } catch {}
+      } catch { }
     }
   }
 
@@ -1160,8 +1160,8 @@ export async function updatePage(
       input.publishedAt !== undefined
         ? input.publishedAt
         : input.status === "PUBLISHED" && current.status !== "PUBLISHED"
-        ? now.toISOString()
-        : current.publishedAt,
+          ? now.toISOString()
+          : current.publishedAt,
     version: nextVersion,
     updatedAt: now.toISOString(),
   };
@@ -1435,5 +1435,51 @@ export async function migrateLegacyPagesToBlocks(): Promise<{ migratedCount: num
   }
 
   return { migratedCount: migratedPages.length, pages: migratedPages };
+}
+
+// ─── Legacy Compat: PageData → DynamicPageContent field extraction ───────────
+// Mevcut statik sayfa tasarımlarını bozmadan yeni CMS'den veri çekmek için.
+// Her statik page.tsx bunu kullanarak title, subtitle, badgeText vb. alır.
+
+export interface PageStaticFields {
+  title: string;
+  subtitle: string;
+  badgeText: string;
+  heroImageUrl: string;
+  bodyHtml: string;
+  seoTitle: string;
+  seoDescription: string;
+}
+
+export function extractStaticFields(page: PageData): PageStaticFields {
+  const blocks = page.content || [];
+
+  // Hero bloğundan: title, subtitle, heroImageUrl
+  const heroBlock = blocks.find((b) => b.type === "hero");
+  // İlk heading bloğundan: badgeText, subtitle (eğer hero yoksa)
+  const headingBlock = blocks.find((b) => b.type === "heading");
+  // Text bloğundan: bodyHtml
+  const textBlock = blocks.find((b) => b.type === "text");
+
+  const title = page.title || "";
+  const subtitle =
+    heroBlock?.attrs?.subtitle ||
+    headingBlock?.attrs?.subtitle ||
+    "";
+  const badgeText =
+    headingBlock?.attrs?.badgeText ||
+    heroBlock?.attrs?.badgeText ||
+    "";
+  const heroImageUrl =
+    heroBlock?.attrs?.imageUrl ||
+    heroBlock?.attrs?.posterUrl ||
+    "";
+  const bodyHtml = textBlock?.attrs?.html || "";
+  const seoTitle = page.seo?.title || `${title} | Elmira Davet`;
+  const seoDescription =
+    page.seo?.description ||
+    "Elmira Davet & Balo Salonları, lüks mimarisi ve zengin organizasyon menüleriyle en özel anlarınızı taçlandırıyor.";
+
+  return { title, subtitle, badgeText, heroImageUrl, bodyHtml, seoTitle, seoDescription };
 }
 

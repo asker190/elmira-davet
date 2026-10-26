@@ -2,14 +2,20 @@ import { mockEvents } from "@/lib/mock-data";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CalendarCheck2, Sparkles, Heart, Gem, Crown, Building, PartyPopper } from "lucide-react";
+import { getPageBySlug, extractStaticFields } from "@/lib/cms/page-service";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
-  title: "Etkinlik Türleri & Hizmetlerimiz | Elmira Davet",
-  description:
-    "Düğün, nişan, kına gecesi, söz merasimi, sünnet düğünü ve kurumsal davetleriniz için Elmira Davet Salonu ayrıcalıkları.",
-};
+export async function generateMetadata() {
+  const page = await getPageBySlug("etkinlikler");
+  const fields = page ? extractStaticFields(page) : null;
+  return {
+    title: fields?.seoTitle || "Etkinlik Türleri & Hizmetlerimiz | Elmira Davet",
+    description:
+      fields?.seoDescription ||
+      "Düğün, nişan, kına gecesi, söz merasimi, sünnet düğünü ve kurumsal davetleriniz için Elmira Davet Salonu ayrıcalıkları.",
+  };
+}
 
 const iconMap: Record<string, React.ElementType> = {
   Heart,
@@ -20,21 +26,22 @@ const iconMap: Record<string, React.ElementType> = {
   PartyPopper,
 };
 
-export default function EventsPage() {
+export default async function EventsPage() {
+  const cmsPage = await getPageBySlug("etkinlikler");
+  const fields = cmsPage ? extractStaticFields(cmsPage) : null;
   return (
     <div className="pt-28 pb-20 space-y-20">
       {/* Header Banner */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
         <span className="text-xs uppercase tracking-[0.3em] text-gold font-medium">
-          Hizmet Yelpazemiz
+          {fields?.badgeText || "Hizmet Yelpazemiz"}
         </span>
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading text-cream">
-          Her Özel Güne Kusursuz Dokunuş
+          {cmsPage?.title || "Her Özel Güne Kusursuz Dokunuş"}
         </h1>
         <div className="divider-gold" />
         <p className="text-text-secondary text-sm sm:text-base max-w-2xl mx-auto font-sans leading-relaxed">
-          Evlilik merasimlerinden geleneksel kına gecelerine, sünnet törenlerinden kurumsal
-          galalara kadar her organizasyon türü için uzman kadromuzla yanınızdayız.
+          {fields?.subtitle || "Evlilik merasimlerinden geleneksel kına gecelerine, sünnet törenlerinden kurumsal galalara kadar her organizasyon türü için uzman kadromuzla yanınızdayız."}
         </p>
       </section>
 

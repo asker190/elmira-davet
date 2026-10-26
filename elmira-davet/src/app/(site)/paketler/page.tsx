@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getPageContent } from "@/lib/cms/pages";
+import { getPageBySlug, extractStaticFields } from "@/lib/cms/page-service";
 import Link from "next/link";
 import { Check, Star, ArrowRight, HelpCircle } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
@@ -9,17 +9,18 @@ import { mockPackages } from "@/lib/mock-data";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
-  const page = await getPageContent("paketler");
+  const page = await getPageBySlug("paketler");
+  const fields = page ? extractStaticFields(page) : null;
   return {
-    title: page.seoTitle || "Düğün & Etkinlik Paketleri | Elmira Davet",
+    title: fields?.seoTitle || "Düğün & Etkinlik Paketleri | Elmira Davet",
     description:
-      page.seoDescription ||
+      fields?.seoDescription ||
       "Gümüş, Altın ve Elmas düğün paketlerimiz ile hayalinizdeki daveti en avantajlı şartlarla planlayın.",
   };
 }
 
 export default async function PackagesPage() {
-  const [dbPackages, page] = await Promise.all([
+  const [dbPackages, cmsPage] = await Promise.all([
     prisma.package
       .findMany({
         where: { isActive: true },
@@ -31,8 +32,9 @@ export default async function PackagesPage() {
         orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }],
       })
       .catch(() => []),
-    getPageContent("paketler"),
+    getPageBySlug("paketler"),
   ]);
+  const page = cmsPage ? extractStaticFields(cmsPage) : { title: "Paketler & Menüler", subtitle: "Size özel konseptler ve menü seçenekleri", badgeText: "Kişiye Özel Konseptler", heroImageUrl: "", bodyHtml: "", seoTitle: "", seoDescription: "" };
 
   const packages = dbPackages.length > 0 ? dbPackages : mockPackages;
 
@@ -63,7 +65,7 @@ export default async function PackagesPage() {
           {page.badgeText || "Kişiye Özel Konseptler"}
         </span>
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading text-text-primary">
-          {page.title}
+          {cmsPage?.title || page.title}
         </h1>
         <div className="divider-gold" />
         <p className="text-text-secondary text-sm sm:text-base max-w-2xl mx-auto">

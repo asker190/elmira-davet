@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/lib/settings";
-import { getPageContent } from "@/lib/cms/pages";
+import { getPageBySlug, extractStaticFields } from "@/lib/cms/page-service";
 import { ReservationForm } from "@/components/site/reservation-form";
 import { Phone, Mail, MapPin, Clock, MessageCircle, Sparkles } from "lucide-react";
 import { getWhatsAppUrl } from "@/lib/utils";
@@ -8,21 +8,23 @@ import { getWhatsAppUrl } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
-  const page = await getPageContent("iletisim");
+  const page = await getPageBySlug("iletisim");
+  const fields = page ? extractStaticFields(page) : null;
   return {
-    title: page.seoTitle || "İletişim & Rezervasyon | Elmira Davet Gaziosmanpaşa",
+    title: fields?.seoTitle || "İletişim & Rezervasyon | Elmira Davet Gaziosmanpaşa",
     description:
-      page.seoDescription ||
+      fields?.seoDescription ||
       "Elmira Davet Salonu Gaziosmanpaşa iletişim bilgileri, adres, Google Haritalar konumu ve online randevu formu.",
   };
 }
 
 export default async function ContactPage() {
-  const [settings, blockedDates, page] = await Promise.all([
+  const [settings, blockedDates, cmsPage] = await Promise.all([
     getSiteSettings(),
     prisma.blockedDate.findMany().catch(() => []),
-    getPageContent("iletisim"),
+    getPageBySlug("iletisim"),
   ]);
+  const page = cmsPage ? extractStaticFields(cmsPage) : { title: "İletişim & Randevu", subtitle: "Hayalinizdeki daveti birlikte planlayalım", badgeText: "İstanbul - Gaziosmanpaşa", heroImageUrl: "", bodyHtml: "", seoTitle: "", seoDescription: "" };
 
   const blockedDateStrings = blockedDates.map(
     (b) => b.date.toISOString().split("T")[0]
@@ -51,7 +53,7 @@ export default async function ContactPage() {
         </div>
 
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading text-cream">
-          {page.title}
+          {cmsPage?.title || page.title}
         </h1>
         <div className="divider-gold" />
         <p className="text-text-secondary text-sm sm:text-base max-w-2xl mx-auto font-sans leading-relaxed">

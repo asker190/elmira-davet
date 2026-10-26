@@ -1,7 +1,19 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import type { BlockNode } from "@/lib/cms/types";
+import { HallCard } from "@/components/site/hall-card";
+import { ReservationForm } from "@/components/site/reservation-form";
+import {
+  mockHalls,
+  mockPackages,
+  mockGalleryImages,
+  mockTestimonials,
+  mockFaqs,
+} from "@/lib/mock-data";
+import { formatPrice } from "@/lib/utils";
 import {
   Sparkles,
   AlertCircle,
@@ -17,6 +29,10 @@ import {
   Image as ImageIcon,
   Images,
   ExternalLink,
+  Star,
+  Check,
+  ArrowRight,
+  ChevronDown,
 } from "lucide-react";
 
 interface BlockRendererProps {
@@ -34,7 +50,6 @@ export function BlockCanvasRenderer({
 }: BlockRendererProps) {
   const { type, attrs } = block;
 
-  // Fallback for unknown block types (B-02)
   if (!type) {
     return (
       <div className="p-4 border border-dashed border-red-500/50 bg-red-500/10 rounded-xl text-center text-red-300 text-xs">
@@ -45,44 +60,79 @@ export function BlockCanvasRenderer({
 
   switch (type) {
     case "hero": {
-      return (
-        <div
-          className="relative rounded-2xl overflow-hidden border border-gold/20 flex flex-col items-center justify-center text-center p-8 md:p-16 min-h-[360px] bg-cover bg-center"
-          style={{
-            backgroundImage: `url(${attrs.imageUrl || attrs.posterUrl || "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1920&q=80"})`,
-          }}
-        >
-          <div
-            className="absolute inset-0 bg-black"
-            style={{ opacity: (attrs.overlayOpacity ?? 55) / 100 }}
-          />
+      const bgImage =
+        attrs.imageUrl ||
+        attrs.posterUrl ||
+        "https://images.unsplash.com/photo-1519741497674-611481863552?w=1920&q=85";
 
-          <div className="relative z-10 max-w-2xl space-y-4">
-            <h1 className="text-2xl md:text-4xl font-heading text-cream font-bold drop-shadow">
-              {attrs.title || "Hero Başlığı"}
-            </h1>
-            <p className="text-cream/80 text-sm md:text-base drop-shadow-sm">
-              {attrs.subtitle || "Alt açıklama metni"}
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-              <span className="px-5 py-2.5 rounded-xl bg-gold text-charcoal-900 font-semibold text-xs shadow-lg">
-                {attrs.primaryButtonText || "Hemen Teklif Al"}
-              </span>
-              {attrs.secondaryButtonText && (
-                <span className="px-5 py-2.5 rounded-xl bg-white/10 backdrop-blur-sm text-cream border border-gold/40 text-xs">
-                  {attrs.secondaryButtonText}
-                </span>
-              )}
-            </div>
+      return (
+        <section className="relative min-h-[520px] lg:min-h-[640px] w-full rounded-3xl overflow-hidden flex items-center justify-center bg-bg-primary select-none p-8 md:p-16 border border-border shadow-elevated">
+          {/* Background Poster & Layered Gradients */}
+          <div className="absolute inset-0 z-0">
+            <img
+              src={bgImage}
+              alt="Elmira Davet Salonu"
+              className="w-full h-full object-cover transition-transform duration-700"
+            />
+            <div
+              className="absolute inset-0 bg-black"
+              style={{ opacity: (attrs.overlayOpacity ?? 60) / 100 }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-bg-primary/50 to-black/70" />
           </div>
 
-          {!attrs.posterUrl && attrs.mediaType === "video" && (
-            <div className="absolute top-3 right-3 bg-amber-500/90 text-charcoal-900 px-2 py-0.5 rounded text-[10px] font-semibold flex items-center gap-1 shadow">
-              <AlertCircle className="w-3 h-3" />
-              Video posteri eksik!
+          {/* Gold Glow */}
+          <div
+            aria-hidden="true"
+            className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[360px] bg-gold/10 rounded-full blur-[100px] pointer-events-none z-10"
+          />
+
+          {/* Foreground Hero Content */}
+          <div className="relative z-20 max-w-4xl mx-auto text-center space-y-6">
+            {/* Location Pill */}
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface/85 border border-gold/30 text-gold text-xs tracking-widest uppercase backdrop-blur-md shadow-card">
+              <MapPin className="w-3.5 h-3.5 text-gold shrink-0" />
+              <span>İstanbul - Gaziosmanpaşa</span>
+              <span className="w-1 h-1 rounded-full bg-gold" />
+              <span className="text-cream font-medium">Elmira Davet Salonu</span>
             </div>
-          )}
-        </div>
+
+            {/* Title */}
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-heading text-cream font-normal tracking-tight leading-[1.2] drop-shadow-md">
+              {attrs.title || "Aşkınızın En Görkemli Sahnesi"}
+            </h1>
+
+            {/* Subtitle */}
+            <p className="text-text-secondary text-sm sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-sans">
+              {attrs.subtitle ||
+                "İstanbul Gaziosmanpaşa'da hayalinizdeki düğün, kristal avizeler ve büyüleyici kır bahçesiyle gerçeğe dönüşüyor."}
+            </p>
+
+            {/* Capacity Pills */}
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+              <span className="px-3.5 py-1.5 rounded-full bg-surface/80 border border-gold/25 text-xs text-cream flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-gold" />
+                <span>Kristal Salon – 600 Kişilik Kapasite</span>
+              </span>
+              <span className="px-3.5 py-1.5 rounded-full bg-surface/80 border border-gold/25 text-xs text-cream flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-gold" />
+                <span>Kır Bahçesi – 300 Kişilik Açık Hava</span>
+              </span>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap items-center justify-center gap-4 pt-3">
+              <span className="px-6 py-3 rounded-full bg-gradient-gold text-bg-primary font-semibold text-xs uppercase tracking-wider shadow-gold flex items-center gap-2">
+                <CalendarCheck className="w-3.5 h-3.5" />
+                <span>{attrs.primaryButtonText || "Teklif & Randevu Al"}</span>
+              </span>
+              <span className="px-6 py-3 rounded-full bg-surface/80 border border-border text-cream text-xs uppercase tracking-wider font-semibold flex items-center gap-1.5 hover:border-gold/50 transition-colors">
+                <span>{attrs.secondaryButtonText || "Salonlarımızı İnceleyin"}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </span>
+            </div>
+          </div>
+        </section>
       );
     }
 
@@ -92,27 +142,28 @@ export function BlockCanvasRenderer({
       const isDuplicateH1 = level === 1 && h1Count > 1;
 
       return (
-        <div className={`space-y-2 text-${attrs.align || "center"} py-2`}>
+        <div className={`space-y-3 text-${attrs.align || "center"} py-4 max-w-3xl mx-auto`}>
           {attrs.badgeText && (
-            <span className="inline-block px-3 py-1 rounded-full text-[10px] tracking-wider uppercase font-semibold bg-gold/15 text-gold border border-gold/30">
+            <span className="text-xs uppercase tracking-[0.25em] text-gold font-medium block">
               {attrs.badgeText}
             </span>
           )}
           <HeadingTag
-            className={`font-heading text-cream font-bold tracking-tight ${
+            className={`font-heading text-cream font-normal tracking-tight ${
               level === 1
-                ? "text-3xl md:text-4xl text-gradient-gold"
+                ? "text-4xl sm:text-5xl text-gradient-gold"
                 : level === 2
-                ? "text-2xl md:text-3xl"
+                ? "text-3xl sm:text-4xl"
                 : level === 3
-                ? "text-xl md:text-2xl"
-                : "text-lg md:text-xl"
+                ? "text-2xl sm:text-3xl"
+                : "text-xl sm:text-2xl"
             }`}
           >
-            {attrs.text || "Başlık Yazısı"}
+            {attrs.text || "Bölüm Başlığı"}
           </HeadingTag>
+          <div className="w-16 h-1 bg-gradient-gold rounded-full mx-auto" />
           {attrs.subtitle && (
-            <p className="text-cream/70 text-xs md:text-sm max-w-xl mx-auto">
+            <p className="text-xs sm:text-sm text-text-secondary font-sans leading-relaxed max-w-2xl mx-auto">
               {attrs.subtitle}
             </p>
           )}
@@ -127,10 +178,201 @@ export function BlockCanvasRenderer({
       );
     }
 
+    case "counters": {
+      const defaultItems = [
+        { value: 1200, suffix: "+", prefix: "", label: "Mutlu Düğün & Davet", sublabel: "Gaziosmanpaşa'da unutulmaz tecrübe" },
+        { value: 600, suffix: " Kişi", prefix: "", label: "Kristal Salon", sublabel: "Lüks kapalı davet ve balo salonu" },
+        { value: 300, suffix: " Kişi", prefix: "", label: "Kır Bahçesi", sublabel: "Yıldızlar altında doğal açık hava" },
+        { value: 99, prefix: "%", suffix: "", label: "Misafir Memnuniyeti", sublabel: "Doğrulanmış çift ve aile yorumları" },
+      ];
+      const items = attrs.items && attrs.items.length > 0 ? attrs.items : defaultItems;
+
+      return (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 py-4">
+          {items.map((it: any, i: number) => (
+            <div
+              key={i}
+              className="p-6 rounded-2xl bg-surface border border-border shadow-card flex flex-col items-center justify-center text-center space-y-1.5"
+            >
+              <div className="text-3xl sm:text-4xl font-heading font-bold text-gold">
+                {it.prefix || ""}{it.value}{it.suffix || ""}
+              </div>
+              <div className="text-xs sm:text-sm font-medium text-cream">{it.label}</div>
+              {it.sublabel && (
+                <div className="text-[11px] text-text-muted font-sans">{it.sublabel}</div>
+              )}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    case "hall_cards": {
+      return (
+        <div className="space-y-6 py-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10">
+            {mockHalls.map((hall) => (
+              <HallCard key={hall.id} hall={hall} />
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    case "packages": {
+      return (
+        <div className="space-y-6 py-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {mockPackages.map((pkg) => (
+              <div
+                key={pkg.id}
+                className={`p-8 rounded-3xl bg-surface border flex flex-col justify-between h-full transition-all duration-300 relative group ${
+                  pkg.isFeatured
+                    ? "border-gold shadow-gold ring-1 ring-gold/40"
+                    : "border-border shadow-card"
+                }`}
+              >
+                {pkg.isFeatured && (
+                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-semibold bg-gradient-gold text-bg-primary uppercase tracking-wider shadow-md">
+                    En Çok Tercih Edilen
+                  </span>
+                )}
+
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-2xl font-heading text-cream">{pkg.name}</h3>
+                    <p className="text-xs text-text-muted mt-2 leading-relaxed font-sans">
+                      {pkg.description}
+                    </p>
+                  </div>
+
+                  <div className="pb-6 border-b border-border">
+                    <span className="text-3xl sm:text-4xl font-heading text-gradient-gold font-bold">
+                      {pkg.priceLabel || formatPrice(pkg.price ? Number(pkg.price) : null)}
+                    </span>
+                  </div>
+
+                  <ul className="space-y-3">
+                    {pkg.features.map((feat) => (
+                      <li
+                        key={feat.id}
+                        className="flex items-start gap-3 text-xs sm:text-sm text-text-secondary"
+                      >
+                        <Check className="w-4 h-4 text-gold shrink-0 mt-0.5" />
+                        <span>{feat.text}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="pt-8">
+                  <span
+                    className={`w-full py-3.5 rounded-full text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
+                      pkg.isFeatured
+                        ? "bg-gradient-gold text-bg-primary shadow-gold"
+                        : "bg-surface-hover text-cream border border-border"
+                    }`}
+                  >
+                    <span>Teklif Al & Randevu</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    case "gallery": {
+      return (
+        <div className="space-y-6 py-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+            {mockGalleryImages.slice(0, 6).map((img) => (
+              <div
+                key={img.id}
+                className="group relative h-64 sm:h-80 rounded-3xl overflow-hidden bg-surface border border-border shadow-card"
+              >
+                <img
+                  src={img.imageUrl}
+                  alt={img.alt || img.title}
+                  className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-5 flex flex-col justify-end">
+                  <span className="text-[10px] px-2.5 py-1 rounded-full bg-black/60 text-gold self-start mb-1 backdrop-blur-xs border border-gold/20">
+                    {img.category.name}
+                  </span>
+                  <p className="text-xs sm:text-sm text-cream font-medium">
+                    {img.title || img.alt}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    case "testimonials": {
+      return (
+        <div className="space-y-6 py-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {mockTestimonials.map((t) => (
+              <div
+                key={t.id}
+                className="p-8 rounded-3xl bg-surface border border-border flex flex-col justify-between space-y-6 shadow-card h-full"
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-4 h-4 ${
+                          i < t.rating ? "text-gold fill-current" : "text-border"
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-text-secondary italic leading-relaxed font-sans">
+                    &ldquo;{t.content}&rdquo;
+                  </p>
+                </div>
+
+                <div className="pt-4 border-t border-border flex items-center justify-between">
+                  <div>
+                    <h3 className="font-heading text-cream text-sm font-semibold">{t.name}</h3>
+                    {t.eventType && (
+                      <p className="text-[11px] text-text-muted mt-0.5">{t.eventType}</p>
+                    )}
+                  </div>
+                  <span className="text-[11px] text-gold font-accent">Doğrulanmış Çift</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    case "reservation_form": {
+      return (
+        <div className="py-6 max-w-5xl mx-auto">
+          <ReservationForm blockedDateStrings={[]} whatsAppNumber="905551234567" />
+        </div>
+      );
+    }
+
+    case "faq": {
+      const items = attrs.items && attrs.items.length > 0 ? attrs.items : mockFaqs.map((f) => ({ question: f.q, answer: f.a }));
+
+      return <EditorFaqAccordion items={items} />;
+    }
+
     case "text": {
       return (
         <div
-          className="prose prose-invert prose-cream text-xs md:text-sm max-w-none py-1 leading-relaxed text-cream/90"
+          className="prose prose-invert prose-cream text-sm sm:text-base max-w-none py-2 leading-relaxed text-text-secondary font-sans"
           dangerouslySetInnerHTML={{
             __html: attrs.html || "<p>Metin girilmedi...</p>",
           }}
@@ -140,16 +382,16 @@ export function BlockCanvasRenderer({
 
     case "image": {
       return (
-        <div className="space-y-2 py-2">
+        <div className="space-y-2 py-4">
           <div
-            className={`relative rounded-xl overflow-hidden border border-gold/20 mx-auto max-w-3xl ${
+            className={`relative rounded-3xl overflow-hidden border border-border shadow-card mx-auto max-w-4xl ${
               attrs.aspectRatio === "16:9"
                 ? "aspect-video"
                 : attrs.aspectRatio === "4:3"
                 ? "aspect-[4/3]"
                 : attrs.aspectRatio === "1:1"
                 ? "aspect-square"
-                : "aspect-auto max-h-[480px]"
+                : "aspect-auto max-h-[560px]"
             }`}
           >
             <img
@@ -159,197 +401,64 @@ export function BlockCanvasRenderer({
             />
           </div>
           {attrs.caption && (
-            <p className="text-center text-[11px] text-cream/50 italic">
+            <p className="text-center text-xs text-text-muted italic pt-1 font-sans">
               {attrs.caption}
             </p>
           )}
-          {!attrs.alt && (
-            <div className="text-center">
-              <span className="inline-flex items-center gap-1 text-[10px] text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                <AlertCircle className="w-3 h-3" />
-                Görsel alt metni eksik! (SEO & Erişilebilirlik)
-              </span>
-            </div>
-          )}
         </div>
       );
     }
 
-    case "gallery": {
+    case "button_cta": {
       return (
-        <div className="p-4 rounded-xl bg-charcoal-800/60 border border-gold/20 space-y-3">
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2 text-gold font-semibold">
-              <Images className="w-4 h-4" />
-              <span>Dinamik Fotoğraf Galerisi</span>
-            </div>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-gold/15 text-gold border border-gold/25 font-mono">
-              Kategori: {attrs.categoryId || "Tümü"} | Düzen: {attrs.layout || "masonry"}
+        <div className="p-8 sm:p-12 rounded-3xl bg-surface border border-gold/30 text-center space-y-4 shadow-card my-4">
+          <h3 className="text-2xl sm:text-3xl font-heading font-bold text-cream">
+            {attrs.text || "Hayalinizdeki Geceyi Birlikte Planlayalım"}
+          </h3>
+          <div>
+            <span className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-gold text-bg-primary font-semibold text-xs uppercase tracking-wider shadow-gold">
+              <span>{attrs.buttonText || "Randevu Alın"}</span>
+              <ArrowRight className="w-4 h-4" />
             </span>
           </div>
-
-          <div className="grid grid-cols-3 gap-2 py-2">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="aspect-video bg-white/5 rounded-lg border border-white/10 flex items-center justify-center text-cream/30 text-[10px]"
-              >
-                Galeri Görseli #{i}
-              </div>
-            ))}
-          </div>
         </div>
       );
     }
 
-    case "hall_cards": {
+    case "video": {
       return (
-        <div className="p-4 rounded-xl bg-charcoal-800/60 border border-gold/20 space-y-3">
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2 text-gold font-semibold">
-              <Building2 className="w-4 h-4" />
-              <span>Dinamik Salon Kartları (Sistemden Çekilir)</span>
+        <div className="relative aspect-video rounded-3xl overflow-hidden border border-gold/25 shadow-2xl bg-black my-4">
+          {attrs.posterUrl ? (
+            <img src={attrs.posterUrl} alt="Video Poster" className="w-full h-full object-cover opacity-60" />
+          ) : null}
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+            <div className="w-14 h-14 rounded-full bg-gradient-gold text-bg-primary flex items-center justify-center mb-2 shadow-gold">
+              <Play className="w-6 h-6 fill-current ml-0.5" />
             </div>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-gold/15 text-gold border border-gold/25 font-mono">
-              {attrs.displayMode === "all" ? "Tüm Salonlar" : "Özel Seçim"}
+            <span className="text-sm font-semibold text-cream drop-shadow">
+              {attrs.source === "youtube" ? "YouTube Video Oynatıcı" : "Özel Video Oynatıcı"}
             </span>
           </div>
-
-          <div className="grid grid-cols-2 gap-3 py-1">
-            <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-1">
-              <div className="font-semibold text-xs text-cream">Kristal Salon</div>
-              <div className="text-[11px] text-cream/60">Kapasite: 600 Kişi | Lüks Kapalı Davet Salonu</div>
-              <div className="text-[10px] text-gold font-medium">Saray Konsepti, Kristal Avizeler, Geniş Sahne</div>
-            </div>
-            <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-1">
-              <div className="font-semibold text-xs text-cream">Kır Bahçesi</div>
-              <div className="text-[11px] text-cream/60">Kapasite: 300 Kişi | Doğal Açık Hava Alanı</div>
-              <div className="text-[10px] text-gold font-medium">Yıldızlar Altında, Rustik Zarafet, Peri Masalı</div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    case "packages": {
-      return (
-        <div className="p-4 rounded-xl bg-charcoal-800/60 border border-gold/20 space-y-3">
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2 text-gold font-semibold">
-              <PackageCheck className="w-4 h-4" />
-              <span>Dinamik Paket & Menü Kartları</span>
-            </div>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-gold/15 text-gold border border-gold/25 font-mono">
-              {attrs.layout || "cards"}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2 py-1">
-            {["Altın Düğün Paketi", "Kına Gecesi Özel", "Kokteyl Menüsü"].map((pkg, idx) => (
-              <div key={idx} className="p-2.5 bg-white/5 rounded-lg border border-white/10 text-xs text-cream">
-                <span className="font-semibold text-gold block mb-1">{pkg}</span>
-                <span className="text-[10px] text-cream/50">Yemekli / İkramlı Servis</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
-    case "counters": {
-      const items = attrs.items || [];
-      return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 py-4 text-center">
-          {items.map((it: any, i: number) => (
-            <div key={i} className="p-3 rounded-xl bg-white/5 border border-gold/15">
-              <div className="text-xl md:text-2xl font-bold text-gold font-heading">
-                {it.value}
-                <span className="text-sm font-normal ml-0.5">{it.suffix}</span>
-              </div>
-              <div className="text-[11px] text-cream/70 mt-1 font-medium">{it.label}</div>
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    case "testimonials": {
-      return (
-        <div className="p-4 rounded-xl bg-charcoal-800/60 border border-gold/20 space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2 text-gold font-semibold">
-              <Quote className="w-4 h-4" />
-              <span>Müşteri Yorumları (Onaylı Yorumlardan Çekilir)</span>
-            </div>
-            <span className="text-[10px] text-cream/50">Düzen: {attrs.layout || "slider"}</span>
-          </div>
-          <div className="p-3 bg-white/5 rounded-xl border border-white/10 text-xs italic text-cream/80">
-            "Düğünümüz rüya gibi geçti, tüm personele ve şeflere sonsuz teşekkürler..."
-            <div className="mt-1 text-[11px] text-gold not-italic font-semibold">— Merve & Berk (Düğün)</div>
-          </div>
-        </div>
-      );
-    }
-
-    case "faq": {
-      const items = attrs.items || [];
-      return (
-        <div className="space-y-2 py-2">
-          <div className="flex items-center gap-2 text-gold text-xs font-semibold mb-2">
-            <HelpCircle className="w-4 h-4" />
-            <span>Sıkça Sorulan Sorular (Akordeon)</span>
-          </div>
-          {items.slice(0, 3).map((faq: any, idx: number) => (
-            <div key={idx} className="p-3 rounded-xl bg-white/5 border border-gold/15 text-xs">
-              <div className="font-semibold text-cream flex items-center justify-between">
-                <span>{faq.question}</span>
-                <span className="text-gold font-mono">+</span>
-              </div>
-              <p className="text-[11px] text-cream/60 mt-1 line-clamp-1">{faq.answer}</p>
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    case "reservation_form": {
-      return (
-        <div className="p-5 rounded-2xl bg-charcoal-800/90 border border-gold/30 space-y-4 max-w-xl mx-auto shadow-xl">
-          <div className="text-center space-y-1">
-            <h3 className="font-heading text-lg text-cream font-bold">{attrs.title || "Teklif Alın"}</h3>
-            <p className="text-xs text-cream/60">{attrs.subtitle || "Danışmanlarımız 1 saat içinde dönsün"}</p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2.5 text-xs">
-            <div className="p-2 bg-black/40 rounded-lg border border-gold/20 text-cream/40">Adınız Soyadınız</div>
-            <div className="p-2 bg-black/40 rounded-lg border border-gold/20 text-cream/40">Telefon Numaranız</div>
-            <div className="p-2 bg-black/40 rounded-lg border border-gold/20 text-cream/40">Etkinlik Tarihi</div>
-            <div className="p-2 bg-black/40 rounded-lg border border-gold/20 text-cream/40">Zaman: 13:00 - 17:00 / 19:00 - 23:00</div>
-          </div>
-
-          <div className="p-2 bg-gold/10 rounded-lg border border-gold/25 text-[10px] text-cream/80 flex items-start gap-1.5">
-            <span className="text-gold font-bold">✓</span>
-            <span>{attrs.kvkkText || "KVKK aydınlatma metnini okudum ve onaylıyorum."}</span>
-          </div>
-
-          <button type="button" className="w-full py-2.5 rounded-xl bg-gold text-charcoal-900 font-semibold text-xs">
-            Teklif Talebini Gönder (CRM Senkron)
-          </button>
         </div>
       );
     }
 
     case "map": {
       return (
-        <div className="space-y-2 py-2">
-          <div className="flex items-center gap-2 text-xs font-semibold text-gold">
-            <MapPin className="w-4 h-4" />
-            <span>{attrs.title || "Harita & Konum"}</span>
+        <div className="space-y-4 py-4">
+          <div className="text-center space-y-1">
+            <h3 className="font-heading text-2xl font-bold text-cream">
+              {attrs.title || "Ulaşım ve Konum"}
+            </h3>
+            <p className="text-xs sm:text-sm text-text-secondary flex items-center justify-center gap-1.5">
+              <MapPin className="w-4 h-4 text-gold shrink-0" />
+              <span>{attrs.address || "Merkez Mahallesi, Gaziosmanpaşa Caddesi No: 42, İstanbul"}</span>
+            </p>
           </div>
-          <div className="h-44 bg-charcoal-800 rounded-xl border border-gold/20 flex flex-col items-center justify-center text-center p-4">
-            <MapPin className="w-8 h-8 text-gold mb-2 opacity-80" />
-            <span className="text-xs font-medium text-cream">{attrs.address}</span>
-            <span className="text-[10px] text-cream/40 mt-1">Google Maps İnteraktif Harita Önizlemesi</span>
+          <div className="rounded-3xl overflow-hidden border border-border shadow-card h-72 sm:h-80 bg-surface flex flex-col items-center justify-center text-center p-6">
+            <MapPin className="w-10 h-10 text-gold mb-2 opacity-80" />
+            <span className="text-sm font-medium text-cream">{attrs.address || "Gaziosmanpaşa / İstanbul"}</span>
+            <span className="text-xs text-text-muted mt-1 font-sans">Google Maps İnteraktif Harita Alanı</span>
           </div>
         </div>
       );
@@ -363,13 +472,12 @@ export function BlockCanvasRenderer({
               <Columns className="w-4 h-4" />
               <span>Sütun Konteyneri ({attrs.columnsCount || 2} Sütun)</span>
             </div>
-            <span className="text-[10px] text-cream/50">Mobilde otomatik alt alta dizilir</span>
           </div>
-          <div className={`grid grid-cols-${attrs.columnsCount || 2} gap-2`}>
+          <div className={`grid grid-cols-${attrs.columnsCount || 2} gap-4`}>
             {Array.from({ length: attrs.columnsCount || 2 }).map((_, cIdx) => (
               <div
                 key={cIdx}
-                className="min-h-[80px] p-2 rounded-lg bg-black/30 border border-white/10 flex items-center justify-center text-center text-[11px] text-cream/40"
+                className="min-h-[100px] p-4 rounded-xl bg-surface border border-border flex items-center justify-center text-center text-xs text-text-muted"
               >
                 Sütun #{cIdx + 1}
               </div>
@@ -379,75 +487,19 @@ export function BlockCanvasRenderer({
       );
     }
 
-    case "button_cta": {
-      return (
-        <div className="p-6 rounded-2xl bg-gradient-to-r from-gold/15 via-black/40 to-gold/15 border border-gold/30 text-center space-y-3">
-          <h4 className="font-heading text-lg font-bold text-cream">{attrs.text || "CTA Başlığı"}</h4>
-          <div>
-            <span className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gold text-charcoal-900 font-semibold text-xs shadow-md">
-              <span>{attrs.buttonText || "Bize Ulaşın"}</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </span>
-          </div>
-          {attrs.buttonUrl && (
-            <div className="text-[10px] text-cream/40 font-mono">Hedef: {attrs.buttonUrl}</div>
-          )}
-        </div>
-      );
-    }
-
-    case "video": {
-      return (
-        <div className="space-y-2 py-2">
-          <div className="relative aspect-video rounded-xl overflow-hidden bg-black border border-gold/25 flex items-center justify-center">
-            {attrs.posterUrl ? (
-              <img src={attrs.posterUrl} alt="Video Poster" className="w-full h-full object-cover opacity-60" />
-            ) : null}
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
-              <div className="w-12 h-12 rounded-full bg-gold/90 text-charcoal-900 flex items-center justify-center mb-2 shadow-lg">
-                <Play className="w-5 h-5 fill-current ml-0.5" />
-              </div>
-              <span className="text-xs font-semibold text-cream drop-shadow">
-                {attrs.source === "youtube" ? "YouTube Video Oynatıcı" : "Özel Video"}
-              </span>
-              <span className="text-[10px] text-cream/60 font-mono max-w-sm truncate mt-0.5">
-                {attrs.url}
-              </span>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
     case "spacer_divider": {
       return (
         <div
-          className="flex items-center justify-center py-2"
+          className="flex items-center justify-center py-4"
           style={{ height: `${attrs.height || 48}px` }}
         >
           {attrs.showDivider && (
             <div className="w-full flex items-center justify-center">
-              <div className="h-[1px] w-24 bg-gradient-to-r from-transparent via-gold to-transparent" />
-              <div className="w-2 h-2 rotate-45 border border-gold bg-charcoal-900 mx-2" />
-              <div className="h-[1px] w-24 bg-gradient-to-r from-gold via-gold to-transparent" />
+              <div className="h-[1px] w-32 bg-gradient-to-r from-transparent via-gold to-transparent" />
+              <div className="w-2.5 h-2.5 rotate-45 border border-gold bg-charcoal-900 mx-3" />
+              <div className="h-[1px] w-32 bg-gradient-to-r from-gold via-gold to-transparent" />
             </div>
           )}
-        </div>
-      );
-    }
-
-    case "saved_block": {
-      return (
-        <div className="p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 text-xs space-y-1">
-          <div className="flex items-center justify-between text-purple-300 font-semibold">
-            <span>Kayıtlı Bölüm (Şablon)</span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20 font-mono">
-              {attrs.isLinked ? "Bağlı Kopya" : "Bağımsız Kopya"}
-            </span>
-          </div>
-          <p className="text-cream/70 text-[11px]">
-            "{attrs.name || "Kayıtlı Şablon"}" içeriği bu alanda dinamik olarak render edilir.
-          </p>
         </div>
       );
     }
@@ -456,7 +508,7 @@ export function BlockCanvasRenderer({
       return (
         <div className="p-3 rounded-xl bg-black/60 border border-gold/25 font-mono text-xs text-cream/80 space-y-1">
           <div className="flex items-center justify-between text-[10px] text-amber-300 font-semibold">
-            <span>Özel HTML Kodu (XSS Korumalı)</span>
+            <span>Özel HTML Kodu</span>
             <span>Yalnızca ADMIN</span>
           </div>
           <div className="p-2 bg-charcoal-900 rounded border border-white/5 overflow-x-auto text-[11px] text-emerald-400">
@@ -473,4 +525,40 @@ export function BlockCanvasRenderer({
         </div>
       );
   }
+}
+
+function EditorFaqAccordion({ items }: { items: Array<{ question: string; answer: string }> }) {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
+
+  return (
+    <div className="space-y-3 max-w-3xl mx-auto py-4">
+      {items.map((item, idx) => {
+        const isOpen = openIndex === idx;
+        return (
+          <div
+            key={idx}
+            className="rounded-2xl bg-surface border border-border overflow-hidden transition-colors"
+          >
+            <button
+              type="button"
+              onClick={() => setOpenIndex(isOpen ? null : idx)}
+              className="w-full p-4 sm:p-5 flex items-center justify-between text-left text-sm sm:text-base font-semibold text-cream hover:text-gold transition-colors"
+            >
+              <span>{item.question}</span>
+              <ChevronDown
+                className={`w-4 h-4 text-gold shrink-0 transition-transform duration-300 ${
+                  isOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+            {isOpen && (
+              <div className="px-4 pb-4 sm:px-5 sm:pb-5 text-xs sm:text-sm text-text-secondary leading-relaxed border-t border-border pt-3 font-sans">
+                {item.answer}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
