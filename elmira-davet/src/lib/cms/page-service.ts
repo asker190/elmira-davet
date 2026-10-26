@@ -1285,11 +1285,12 @@ export async function restorePageFromTrash(
 }
 
 export async function permanentlyDeletePage(
-  id: string
+  id: string,
+  options?: { force?: boolean }
 ): Promise<{ success: boolean; error?: string }> {
   const page = await getPageById(id);
   if (!page) return { success: false, error: "Sayfa bulunamadı." };
-  if (page.isSystem) return { success: false, error: "Sistem sayfaları kalıcı olarak silinemez." };
+  if (page.isSystem && !options?.force) return { success: false, error: "Sistem sayfaları kalıcı olarak silinemez." };
 
   if (await isDatabaseReachable()) {
     try {
