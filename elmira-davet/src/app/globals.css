@@ -1,0 +1,208 @@
+@import "tailwindcss";
+@config "../../tailwind.config.mjs";
+
+/* ─── CSS Variables & Design Tokens (Elmira Luxury Champagne & Cream) ─── */
+
+:root {
+  --color-bg-primary: #121212;
+  --color-bg-secondary: #1A1A1A;
+  --color-surface: #222222;
+  --color-surface-hover: #2B2B2B;
+  --color-border: #333333;
+  --color-border-light: #444444;
+
+  --color-gold: #C9A86A;
+  --color-gold-light: #E6D5B8;
+  --color-gold-dark: #9E7D3F;
+  --color-cream: #F5F0E8;
+  --color-anthracite: #1E1E1E;
+
+  --color-text-primary: #F5F0E8;
+  --color-text-secondary: #B8B0A2;
+  --color-text-muted: #7E776C;
+
+  --color-error: #EF4444;
+  --color-success: #22C55E;
+}
+
+/* ─── Base Styles ─────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  background-color: #121212;
+  color: #F5F0E8;
+  font-family: var(--font-body), "Inter", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ─── Typography Utility Classes ──────────────────────── */
+
+.font-heading {
+  font-family: var(--font-heading), "Playfair Display", Georgia, serif !important;
+}
+
+.font-body {
+  font-family: var(--font-body), "Inter", system-ui, sans-serif !important;
+}
+
+.font-accent {
+  font-family: var(--font-accent), "Cormorant Garamond", Georgia, serif !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading), "Playfair Display", Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+/* ─── Selection ───────────────────────────────────────── */
+
+::selection {
+  background-color: #C9A86A;
+  color: #121212;
+}
+
+/* ─── Custom Scrollbar ────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #121212;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #222222;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #C9A86A;
+}
+
+/* ─── Focus Styles ────────────────────────────────────── */
+
+:focus-visible {
+  outline: 2px solid #C9A86A;
+  outline-offset: 3px;
+}
+
+/* ─── Reduced Motion Support ──────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── Mask Animation Helper ───────────────────────────── */
+
+.mask-overflow {
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: bottom;
+}
+
+/* ─── Luxury Gradients & Utilities ────────────────────── */
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, #F5F0E8 0%, #C9A86A 50%, #9E7D3F 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-champagne {
+  background: linear-gradient(135deg, #FFFFFF 0%, #E6D5B8 60%, #C9A86A 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-gradient-gold {
+  background: linear-gradient(135deg, #DFBE7A 0%, #C9A86A 50%, #A58340 100%);
+}
+
+.shadow-gold {
+  box-shadow: 0 4px 25px rgba(201, 168, 106, 0.25);
+}
+
+.shadow-card {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.shadow-elevated {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+}
+
+.divider-gold {
+  width: 60px;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, #C9A86A, transparent);
+  margin: 1.25rem auto;
+}
+
+/* ─── Explicit Color Helper Classes ───────────────────── */
+
+.bg-bg-primary { background-color: #121212 !important; }
+.bg-bg-secondary { background-color: #1A1A1A !important; }
+.bg-surface { background-color: #222222 !important; }
+.bg-surface-hover:hover { background-color: #2B2B2B !important; }
+
+.bg-gold { background-color: #C9A86A !important; }
+.bg-gold\/10 { background-color: rgba(201, 168, 106, 0.1) !important; }
+.bg-gold\/20 { background-color: rgba(201, 168, 106, 0.2) !important; }
+.bg-gold\/30 { background-color: rgba(201, 168, 106, 0.3) !important; }
+
+.text-cream { color: #F5F0E8 !important; }
+.text-gold { color: #C9A86A !important; }
+.text-gold-light { color: #E6D5B8 !important; }
+.text-text-primary { color: #F5F0E8 !important; }
+.text-text-secondary { color: #B8B0A2 !important; }
+.text-text-muted { color: #7E776C !important; }
+
+.border-border { border-color: #333333 !important; }
+.border-gold { border-color: #C9A86A !important; }
+.border-gold\/20 { border-color: rgba(201, 168, 106, 0.2) !important; }
+.border-gold\/30 { border-color: rgba(201, 168, 106, 0.3) !important; }
+.border-gold\/40 { border-color: rgba(201, 168, 106, 0.4) !important; }
+.border-gold\/50 { border-color: rgba(201, 168, 106, 0.5) !important; }
+
+/* ─── Lenis Smooth Scroll ─────────────────────────────── */
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}

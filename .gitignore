@@ -1,0 +1,58 @@
+# Dependencies
+node_modules/
+elmira-davet/node_modules/
+
+# Next.js build
+.next/
+elmira-davet/.next/
+out/
+elmira-davet/out/
+build/
+elmira-davet/build/
+
+# Environment files
+.env*
+!.env.example
+elmira-davet/.env*
+!elmira-davet/.env.example
+
+# Local data & databases
+.data/
+elmira-davet/.data/
+backups/
+elmira-davet/backups/
+*.db
+*.sqlite
+*.db-journal
+*.backup
+*.sql
+
+# Testing & Scratch
+coverage/
+elmira-davet/coverage/
+playwright-report/
+elmira-davet/playwright-report/
+test-results/
+elmira-davet/test-results/
+scratch/
+elmira-davet/scratch/
+
+# Debug logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Vercel
+.vercel/
+elmira-davet/.vercel/
+
+# TypeScript & System
+*.tsbuildinfo
+next-env.d.ts
+elmira-davet/next-env.d.ts
+.DS_Store
+*.pem
+.vscode/
+.idea/

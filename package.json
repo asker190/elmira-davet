@@ -1,0 +1,12 @@
+{
+  "name": "elmira-davet-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix elmira-davet run dev",
+    "build": "npm --prefix elmira-davet run build",
+    "start": "npm --prefix elmira-davet run start",
+    "lint": "npm --prefix elmira-davet run lint",
+    "test:visual": "npm --prefix elmira-davet run test:visual"
+  }
+}
