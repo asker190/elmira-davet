@@ -38,41 +38,34 @@ async function runTests() {
 
   // 2. TEST: Boş slug (kök '/') girildiğinde otomatik slug oluşturulmamalı, boş olarak kaydedilmeli
   console.log("\n[TEST 2] Boş Slug (Kök '/') Girildiğinde Otomatik Slug Üretilmeyip Boş Kalması");
-  const updateEmptyRes = await updatePage(sysPageId, { slug: "" });
+  const updateEmptyRes = await updatePage("page_anasayfa", { slug: "" });
   assert.strictEqual(updateEmptyRes.success, true, "Slug boş olarak güncellenebilmeli");
   assert.strictEqual(updateEmptyRes.page?.slug, "", "Slug başlığa dönüştürülmemeli, boş ('') kalmalı");
 
   // getPageBySlug("") ile bulunabilmeli
   const rootPage = await getPageBySlug("");
   assert.ok(rootPage, "Kök ('') slug ile sayfa sorgulanabilmeli");
-  assert.strictEqual(rootPage.id, sysPageId, "Kök sayfa ID'si eşleşmeli");
+  assert.strictEqual(rootPage.id, "page_anasayfa", "Kök sayfa ID'si eşleşmeli");
   console.log("  ✔ Başarılı: Slug boş girdiğimizde otomatik slug üretilmedi, kök ('') olarak kaydedildi.");
 
   // 3. TEST: İkinci bir sayfaya boş slug verildiğinde çakışma hatası vermeli
   console.log("\n[TEST 3] İkinci Sayfaya Boş Slug Verildiğinde Tekillik (Unique) Kontrolü");
-  const page2Res = await createPage({
-    title: "İkinci Sayfa",
-    slug: `ikinci-sayfa-${timestamp}`,
-  });
-  assert.ok(page2Res.success && page2Res.page);
-
-  const duplicateEmptyRes = await updatePage(page2Res.page.id, { slug: "" });
+  const duplicateEmptyRes = await updatePage(sysPageId, { slug: "" });
   assert.strictEqual(duplicateEmptyRes.success, false, "İkinci sayfaya boş slug verilememeli");
   assert.ok(duplicateEmptyRes.error?.includes("Kök"), "Hata mesajı kök slug çakışmasını belirtmeli");
   console.log("  ✔ Başarılı: Birden fazla sayfaya boş slug verilmesi engellendi.");
 
   // 4. TEST: checkSlugAvailabilityAction boş slug denetimi
   console.log("\n[TEST 4] checkSlugAvailabilityAction Boş Slug ve Kullanılabilirlik Kontrolü");
-  const checkOwn = await checkSlugAvailabilityAction("", sysPageId);
+  const checkOwn = await checkSlugAvailabilityAction("", "page_anasayfa");
   assert.strictEqual(checkOwn.available, true, "Kendi sayfası için boş slug müsait görünmeli");
 
-  const checkOther = await checkSlugAvailabilityAction("", page2Res.page.id);
+  const checkOther = await checkSlugAvailabilityAction("", sysPageId);
   assert.strictEqual(checkOther.available, false, "Başka sayfa için boş slug dolu görünmeli");
   console.log("  ✔ Başarılı: checkSlugAvailabilityAction boş slug uygunluğunu doğru raporluyor.");
 
   // Temizlik
   await permanentlyDeletePage(sysPageId);
-  await permanentlyDeletePage(page2Res.page.id);
   console.log("\n>>> TÜM TESTLER BAŞARIYLA GEÇTİ! <<<\n");
 }
 

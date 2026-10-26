@@ -39,9 +39,9 @@ export default async function AboutPage() {
   const paragraphs = page.bodyHtml
     ? page.bodyHtml.split("\n\n").filter(Boolean)
     : [
-        "Elmira Davet Salonu, Gaziosmanpaşa merkezde yer alan eşsiz konumu, 600 kişilik kapalı Kristal Salon'u ve 300 kişilik Kır Bahçesi ile yeni evlenen çiftlerimize unutulmaz bir davet deneyimi yaşatıyor.",
-        "Rakiplerimizden bizi ayıran en önemli fark; hazır şablonların ötesine geçerek her çiftimize özel konsept tasarımı, kişiye özel menü tadımları ve düğün gününde birebir eşlik eden profesyonel organizasyon ekibimizdir.",
-      ];
+      "Elmira Davet Salonu, Gaziosmanpaşa merkezde yer alan eşsiz konumu, 600 kişilik kapalı Kristal Salon'u ve 300 kişilik Kır Bahçesi ile yeni evlenen çiftlerimize unutulmaz bir davet deneyimi yaşatıyor.",
+      "Rakiplerimizden bizi ayıran en önemli fark; hazır şablonların ötesine geçerek her çiftimize özel konsept tasarımı, kişiye özel menü tadımları ve düğün gününde birebir eşlik eden profesyonel organizasyon ekibimizdir.",
+    ];
 
   return (
     <div className="pt-28 pb-20 space-y-20">

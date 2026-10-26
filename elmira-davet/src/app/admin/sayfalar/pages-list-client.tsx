@@ -80,9 +80,9 @@ export function PagesListClient({
   // Hierarchy trash modal (PG-L-07)
   const [trashPromptPage, setTrashPromptPage] = useState<PageData | null>(null);
 
-  // Sorting
-  const [sortBy, setSortBy] = useState<"updatedAt" | "title" | "menuOrder">("updatedAt");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  // Sorting: Default to menuOrder asc so Ana Sayfa (1) and core pages are listed in order
+  const [sortBy, setSortBy] = useState<"updatedAt" | "title" | "menuOrder">("menuOrder");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   // Filter pages
   const filteredPages = pages.filter((page) => {

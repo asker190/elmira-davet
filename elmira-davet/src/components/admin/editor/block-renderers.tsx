@@ -217,14 +217,14 @@ export function BlockCanvasRenderer({
 
           <div className="grid grid-cols-2 gap-3 py-1">
             <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-1">
-              <div className="font-semibold text-xs text-cream">Elmira Balo Salonu</div>
-              <div className="text-[11px] text-cream/60">Kapasite: 750 - 1000 Kişi</div>
-              <div className="text-[10px] text-gold font-medium">Balkon, Geniş Sahne, LED Ekran</div>
+              <div className="font-semibold text-xs text-cream">Kristal Salon</div>
+              <div className="text-[11px] text-cream/60">Kapasite: 600 Kişi | Lüks Kapalı Davet Salonu</div>
+              <div className="text-[10px] text-gold font-medium">Saray Konsepti, Kristal Avizeler, Geniş Sahne</div>
             </div>
             <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-1">
-              <div className="font-semibold text-xs text-cream">Zümrüt Davet Salonu</div>
-              <div className="text-[11px] text-cream/60">Kapasite: 350 - 500 Kişi</div>
-              <div className="text-[10px] text-gold font-medium">Samimi Düzen, Özel Işıklandırma</div>
+              <div className="font-semibold text-xs text-cream">Kır Bahçesi</div>
+              <div className="text-[11px] text-cream/60">Kapasite: 300 Kişi | Doğal Açık Hava Alanı</div>
+              <div className="text-[10px] text-gold font-medium">Yıldızlar Altında, Rustik Zarafet, Peri Masalı</div>
             </div>
           </div>
         </div>

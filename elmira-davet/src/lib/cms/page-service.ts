@@ -23,7 +23,7 @@ export function getDefaultSeedPages(): PageData[] {
     {
       id: "page_anasayfa",
       title: "Ana Sayfa",
-      slug: "anasayfa",
+      slug: "",
       status: "PUBLISHED",
       parentId: null,
       template: "home",
@@ -43,8 +43,9 @@ export function getDefaultSeedPages(): PageData[] {
       },
       content: [
         createNewBlock("hero", {
-          imageUrl: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1920&q=80",
-          posterUrl: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1920&q=80",
+          imageUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?w=1920&q=80",
+          posterUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?w=1920&q=80",
+          videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-wedding-couple-walking-in-a-forest-41378-large.mp4",
           title: "Aşkınızın En Görkemli Sahnesi",
           subtitle: "Gaziosmanpaşa'da Lüks & Zarafet | 600 ve 300 Kişilik İki Farklı Konsept",
           primaryButtonText: "Hemen Teklif Al",
@@ -53,27 +54,33 @@ export function getDefaultSeedPages(): PageData[] {
           secondaryButtonUrl: "/salonlar",
           overlayOpacity: 55,
         }),
+        createNewBlock("counters", {
+          items: [
+            { label: "Mutlu Düğün & Davet", value: 1200, suffix: "+", sublabel: "Gaziosmanpaşa'da unutulmaz tecrübe" },
+            { label: "Kristal Salon", value: 600, suffix: " Kişi", sublabel: "Lüks kapalı davet ve balo salonu" },
+            { label: "Kır Bahçesi", value: 300, suffix: " Kişi", sublabel: "Yıldızlar altında doğal açık hava" },
+            { label: "Misafir Memnuniyeti", value: 99, prefix: "%", suffix: "", sublabel: "Doğrulanmış çift ve aile yorumları" },
+          ],
+        }),
         createNewBlock("heading", {
-          badgeText: "ELMİRA DAVET & BALO",
-          text: "Gaziosmanpaşa'nın En Seçkin Davet Salonları",
-          subtitle: "Saray konseptli mimarimiz ve kusursuz servisimizle en özel geceniz unutulmaz bir masala dönüşüyor.",
+          badgeText: "SALONLAR",
+          text: "Salonlarımız & Kapasiteler",
+          subtitle: "İki Farklı Atmosfer, Tek Bir Zarafet",
           level: 2,
         }),
         createNewBlock("hall_cards", { displayMode: "all", columns: 2 }),
-        createNewBlock("packages", { layout: "cards", displayMode: "all" }),
-        createNewBlock("counters", {
-          items: [
-            { label: "Mutlu Çift", value: 1250, suffix: "+" },
-            { label: "Kişilik Kapasite", value: 1500, suffix: "" },
-            { label: "Yıllık Tecrübe", value: 14, suffix: " Yıl" },
-            { label: "Profesyonel Ekip", value: 45, suffix: "+" },
-          ],
+        createNewBlock("heading", {
+          badgeText: "AVANTAJLAR",
+          text: "Bölgenin Standartlarını Zarafetle Yeniden Belirliyoruz",
+          subtitle: "Gaziosmanpaşa Merkezde Prestijli Konum",
+          level: 2,
         }),
+        createNewBlock("packages", { layout: "cards", displayMode: "all" }),
+        createNewBlock("gallery", { layout: "masonry", displayMode: "all" }),
         createNewBlock("testimonials", { layout: "slider", displayMode: "all" }),
-        createNewBlock("faq", { displayMode: "all" }),
         createNewBlock("reservation_form", {
-          title: "Hemen Fiyat Teklifi Alın",
-          subtitle: "Tarihinizi ve salon tercihinizi belirleyin, danışmanlarımız 1 saat içinde size özel teklifinizi hazırlasın.",
+          title: "Tarihinizi Hemen Ayırın",
+          subtitle: "Rezervasyon & Bilgi",
         }),
       ],
     },

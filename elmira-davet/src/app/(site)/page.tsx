@@ -32,7 +32,57 @@ import {
   mockHeroSlides,
 } from "@/lib/mock-data";
 
+import type { Metadata } from "next";
+import { getPageBySlug } from "@/lib/cms/page-service";
+
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const [settings, cmsPage] = await Promise.all([
+    getSiteSettings(),
+    getPageBySlug("").catch(() => null),
+  ]);
+
+  const seo = cmsPage?.seo || {};
+  const metaTitle =
+    seo.title ||
+    settings.seoTitle ||
+    "Elmira Davet & Balo Salonları | Gaziosmanpaşa Düğün Salonu";
+  const metaDesc =
+    seo.description ||
+    settings.seoDescription ||
+    "Gaziosmanpaşa'da 600 kişilik Kristal Salon ve 300 kişilik Kır Bahçesi ile masalsı düğün, nişan ve davet organizasyonları.";
+
+  return {
+    title: metaTitle,
+    description: metaDesc,
+    alternates: {
+      canonical: seo.canonical || "https://elmiradavet.com",
+    },
+    robots: {
+      index: !seo.noIndex,
+      follow: !seo.noFollow,
+    },
+    openGraph: {
+      title: metaTitle,
+      description: metaDesc,
+      url: "https://elmiradavet.com",
+      siteName: settings.siteName || "Elmira Davet & Balo Salonları",
+      images: [
+        {
+          url:
+            seo.ogImage ||
+            "https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&q=80",
+          width: 1200,
+          height: 630,
+          alt: metaTitle,
+        },
+      ],
+      locale: "tr_TR",
+      type: "website",
+    },
+  };
+}
 
 interface SectionConfig {
   id: string;
@@ -131,6 +181,7 @@ export default async function HomePage() {
     testimonials,
     blockedDates,
     sectionsSetting,
+    cmsPage,
   ] = await Promise.all([
     getSiteSettings(),
     prisma.heroSlide
@@ -165,6 +216,7 @@ export default async function HomePage() {
     prisma.siteSetting
       .findUnique({ where: { key: "home_page_sections" } })
       .catch(() => null),
+    getPageBySlug("").catch(() => null),
   ]);
 
   const activeSlides = heroSlides && heroSlides.length > 0 ? heroSlides : mockHeroSlides;
@@ -191,7 +243,7 @@ export default async function HomePage() {
       if (Array.isArray(parsed) && parsed.length > 0) {
         configuredSections = parsed;
       }
-    } catch {}
+    } catch { }
   }
 
   // Quick lookup dictionary for section labels/meta
@@ -199,6 +251,55 @@ export default async function HomePage() {
   configuredSections.forEach((s) => {
     secMeta[s.id] = s;
   });
+
+  // Default stat items
+  let statItems = [
+    { value: 1200, suffix: "+", prefix: "", label: "Mutlu Düğün & Davet", sublabel: "Gaziosmanpaşa'da unutulmaz tecrübe" },
+    { value: 600, suffix: " Kişi", prefix: "", label: "Kristal Salon", sublabel: "Lüks kapalı davet ve balo salonu" },
+    { value: 300, suffix: " Kişi", prefix: "", label: "Kır Bahçesi", sublabel: "Yıldızlar altında doğal açık hava" },
+    { value: 99, prefix: "%", suffix: "", label: "Misafir Memnuniyeti", sublabel: "Doğrulanmış çift ve aile yorumları" },
+  ];
+
+  // If CMS Page exists, enrich section titles, descriptions, and stat items from published blocks
+  if (cmsPage && cmsPage.status === "PUBLISHED" && Array.isArray(cmsPage.content)) {
+    const heroBlock = cmsPage.content.find((b: any) => b.type === "hero");
+    if (heroBlock?.attrs && secMeta["hero"]) {
+      if (heroBlock.attrs.title) secMeta["hero"].title = heroBlock.attrs.title;
+      if (heroBlock.attrs.subtitle) secMeta["hero"].subtitle = heroBlock.attrs.subtitle;
+      if (heroBlock.attrs.imageUrl || heroBlock.attrs.posterUrl) {
+        secMeta["hero"].imageUrl = heroBlock.attrs.imageUrl || heroBlock.attrs.posterUrl;
+      }
+    }
+
+    const countersBlock = cmsPage.content.find((b: any) => b.type === "counters");
+    if (countersBlock?.attrs?.items && Array.isArray(countersBlock.attrs.items) && countersBlock.attrs.items.length === 4) {
+      statItems = countersBlock.attrs.items.map((it: any, idx: number) => ({
+        value: typeof it.value === "number" ? it.value : (statItems[idx]?.value ?? 0),
+        prefix: it.prefix || "",
+        suffix: it.suffix || "",
+        label: it.label || statItems[idx]?.label || "",
+        sublabel: it.sublabel || statItems[idx]?.sublabel || "",
+      }));
+    }
+
+    const hallsHeading = cmsPage.content.find((b: any) => b.type === "heading" && (b.attrs?.badgeText === "SALONLAR" || b.attrs?.text?.toLowerCase().includes("salon")));
+    if (hallsHeading?.attrs && secMeta["halls"]) {
+      if (hallsHeading.attrs.text) secMeta["halls"].title = hallsHeading.attrs.text;
+      if (hallsHeading.attrs.subtitle) secMeta["halls"].subtitle = hallsHeading.attrs.subtitle;
+    }
+
+    const featuresHeading = cmsPage.content.find((b: any) => b.type === "heading" && (b.attrs?.badgeText === "AVANTAJLAR" || b.attrs?.text?.toLowerCase().includes("standart")));
+    if (featuresHeading?.attrs && secMeta["features"]) {
+      if (featuresHeading.attrs.text) secMeta["features"].title = featuresHeading.attrs.text;
+      if (featuresHeading.attrs.subtitle) secMeta["features"].subtitle = featuresHeading.attrs.subtitle;
+    }
+
+    const reservationBlock = cmsPage.content.find((b: any) => b.type === "reservation_form");
+    if (reservationBlock?.attrs && secMeta["reservation"]) {
+      if (reservationBlock.attrs.title) secMeta["reservation"].title = reservationBlock.attrs.title;
+      if (reservationBlock.attrs.subtitle) secMeta["reservation"].subtitle = reservationBlock.attrs.subtitle;
+    }
+  }
 
   // Sort enabled sections according to admin order
   const activeSections = configuredSections
@@ -240,30 +341,16 @@ export default async function HomePage() {
           >
             <Reveal direction="up" delay={0.1} distance={25}>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                <Counter
-                  value={1200}
-                  suffix="+"
-                  label="Mutlu Düğün & Davet"
-                  sublabel="Gaziosmanpaşa'da unutulmaz tecrübe"
-                />
-                <Counter
-                  value={600}
-                  suffix=" Kişi"
-                  label="Kristal Salon"
-                  sublabel="Lüks kapalı davet ve balo salonu"
-                />
-                <Counter
-                  value={300}
-                  suffix=" Kişi"
-                  label="Kır Bahçesi"
-                  sublabel="Yıldızlar altında doğal açık hava"
-                />
-                <Counter
-                  value={99}
-                  prefix="%"
-                  label="Misafir Memnuniyeti"
-                  sublabel="Doğrulanmış çift ve aile yorumları"
-                />
+                {statItems.map((st, idx) => (
+                  <Counter
+                    key={idx}
+                    value={st.value}
+                    prefix={st.prefix}
+                    suffix={st.suffix}
+                    label={st.label}
+                    sublabel={st.sublabel}
+                  />
+                ))}
               </div>
             </Reveal>
           </section>
@@ -489,11 +576,10 @@ export default async function HomePage() {
                     className="h-full"
                   >
                     <div
-                      className={`p-8 rounded-3xl bg-surface border flex flex-col justify-between h-full transition-all duration-300 relative group hover:-translate-y-1.5 ${
-                        pkg.isFeatured
-                          ? "border-gold shadow-gold ring-1 ring-gold/40"
-                          : "border-border hover:border-gold/30 shadow-card"
-                      }`}
+                      className={`p-8 rounded-3xl bg-surface border flex flex-col justify-between h-full transition-all duration-300 relative group hover:-translate-y-1.5 ${pkg.isFeatured
+                        ? "border-gold shadow-gold ring-1 ring-gold/40"
+                        : "border-border hover:border-gold/30 shadow-card"
+                        }`}
                     >
                       {pkg.isFeatured && (
                         <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-semibold bg-gradient-gold text-bg-primary uppercase tracking-wider shadow-md">
@@ -535,11 +621,10 @@ export default async function HomePage() {
                       <div className="pt-8">
                         <Link
                           href="#randevu"
-                          className={`w-full py-3.5 rounded-full text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
-                            pkg.isFeatured
-                              ? "bg-gradient-gold text-bg-primary hover:opacity-95 shadow-gold"
-                              : "bg-surface-hover hover:bg-gold/10 hover:text-gold text-cream border border-border"
-                          }`}
+                          className={`w-full py-3.5 rounded-full text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${pkg.isFeatured
+                            ? "bg-gradient-gold text-bg-primary hover:opacity-95 shadow-gold"
+                            : "bg-surface-hover hover:bg-gold/10 hover:text-gold text-cream border border-border"
+                            }`}
                           aria-label={`${pkg.name} için teklif ve randevu alın`}
                         >
                           <span>Teklif Al & Randevu</span>
@@ -671,11 +756,10 @@ export default async function HomePage() {
                           {Array.from({ length: 5 }).map((_, i) => (
                             <Star
                               key={i}
-                              className={`w-4 h-4 ${
-                                i < t.rating
-                                  ? "text-gold fill-current"
-                                  : "text-border"
-                              }`}
+                              className={`w-4 h-4 ${i < t.rating
+                                ? "text-gold fill-current"
+                                : "text-border"
+                                }`}
                             />
                           ))}
                         </div>
