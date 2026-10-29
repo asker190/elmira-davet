@@ -571,6 +571,63 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockDefinition> = {
     },
     defaultVisibility: {},
   },
+
+  features: {
+    type: "features",
+    name: "Ayrıcalıklar & Donanım Kartları",
+    category: "layout",
+    description: "Ayrıcalıklarımız & Donanımımız özellik kartları ızgarası.",
+    icon: "Sparkles",
+    defaultAttrs: {
+      badgeText: "Konfor ve İhtişam",
+      title: "Ayrıcalıklarımız & Donanımımız",
+      items: [
+        {
+          title: "Kristal Salon (600 Kişi)",
+          description: "Geniş dans pisti, yüksek tavan mimarisi ve görkemli kristal avizeler ile lüks kapalı salon.",
+          icon: "Users",
+        },
+        {
+          title: "Kır Bahçesi (300 Kişi)",
+          description: "Yemyeşil doğa manzarası, açık hava dans pisti ve peri masalı aydınlatmalarıyla romantik bahçe.",
+          icon: "Trees",
+        },
+        {
+          title: "Akustik Ses & Robotik Işık",
+          description: "Yankısız ses mimarisi, dijital ışık şovları ve canlı orkestra sahnesi ile üst düzey eğlence.",
+          icon: "Music",
+        },
+        {
+          title: "Ücretsiz Otopark & Vale",
+          description: "Gaziosmanpaşa merkezde geniş özel otopark alanı ve profesyonel vale hizmeti.",
+          icon: "Car",
+        },
+        {
+          title: "Özel Gelin & Damat Süiti",
+          description: "Düğün öncesi dinlenebileceğiniz, konforlu ve geniş hazırlık odası.",
+          icon: "HeartHandshake",
+        },
+        {
+          title: "Gurme Menüler & İkramlar",
+          description: "Usta aşçılarımızın hazırladığı sıcak yemekli, kokteyl veya açık büfe zengin lezzetler.",
+          icon: "Sparkles",
+        },
+      ],
+    },
+    defaultMotion: {
+      animation: "fade",
+      duration: 0.6,
+      delay: 0,
+      trigger: "viewport",
+      once: true,
+    },
+    defaultLayout: {
+      align: "center",
+      contentWidth: "normal",
+      paddingY: "medium",
+    },
+    defaultVisibility: {},
+  },
 };
 
 /**

@@ -5,6 +5,7 @@ import { m } from "framer-motion";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 export interface TextRevealProps {
+  id?: string;
   text: string;
   type?: "words" | "chars" | "lines";
   delay?: number;
@@ -19,6 +20,7 @@ export interface TextRevealProps {
 const EASE_OUT_EXPO = [0.16, 1, 0.3, 1] as const;
 
 export function TextReveal({
+  id,
   text,
   type = "words",
   delay = 0.05,
@@ -32,14 +34,14 @@ export function TextReveal({
   const prefersReduced = useReducedMotion();
 
   if (prefersReduced) {
-    return <Component className={className}>{text}</Component>;
+    return <Component id={id} className={className}>{text}</Component>;
   }
 
   // Tokenize based on type
   if (type === "chars") {
     const chars = text.split("");
     return (
-      <Component className={className}>
+      <Component id={id} className={className}>
         {chars.map((char, i) => (
           <span
             key={i}
@@ -67,7 +69,7 @@ export function TextReveal({
   if (type === "lines") {
     const lines = text.split("\n");
     return (
-      <Component className={className}>
+      <Component id={id} className={className}>
         {lines.map((line, i) => (
           <span key={i} className="block overflow-hidden">
             <m.span
@@ -93,7 +95,7 @@ export function TextReveal({
   const words = text.split(" ");
 
   return (
-    <Component className={className}>
+    <Component id={id} className={className}>
       {words.map((word, i) => {
         const isHighlighted = highlightWords.some(
           (hw) =>

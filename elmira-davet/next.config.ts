@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   // Image Optimization with AVIF and WebP
   images: {
     formats: ["image/avif", "image/webp"],

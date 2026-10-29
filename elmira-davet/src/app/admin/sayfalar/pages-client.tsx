@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { DynamicPageContent, PageFeatureItem } from "@/lib/cms/pages";
 import { savePageAction, resetPageAction } from "./actions";
+import { ImageCropUpload } from "@/components/admin/ui/image-crop-upload";
 
 interface PagesClientProps {
   initialPages: DynamicPageContent[];
@@ -574,94 +575,29 @@ export function PagesClient({ initialPages }: PagesClientProps) {
               {activeTab === "media" && (
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-xs font-medium text-text-secondary mb-1">
-                      Hero / Kapak Banner Görseli URL
-                    </label>
-                    <input
-                      type="url"
+                    <ImageCropUpload
+                      label="Hero / Kapak Banner Görseli"
+                      description="Bilgisayarınızdan yüksek kaliteli bir görsel seçin veya mevcut galeriden belirleyin. Görsel otomatik olarak 16:9 formatına göre kırpılacaktır."
                       value={editingPage.heroImageUrl}
-                      onChange={(e) =>
-                        setEditingPage({ ...editingPage, heroImageUrl: e.target.value })
+                      onChange={(url) =>
+                        setEditingPage({ ...editingPage, heroImageUrl: url })
                       }
-                      placeholder="https://images.unsplash.com/... veya /uploads/..."
-                      className="w-full px-3.5 py-2.5 text-xs bg-surface border border-border rounded-xl text-cream focus:outline-hidden focus:border-gold font-mono"
+                      aspectRatio="16/9"
+                      category="Sayfalar"
                     />
                   </div>
 
-                  {/* Image Preview */}
-                  <div>
-                    <p className="text-xs font-medium text-text-secondary mb-2">
-                      Görsel Önizlemesi
+                  {/* Banner Title Preview */}
+                  <div className="p-4 rounded-xl bg-black/40 border border-gold/15">
+                    <span className="text-[10px] text-gold uppercase tracking-wider font-semibold">
+                      {editingPage.badgeText}
+                    </span>
+                    <h4 className="text-base font-heading text-cream mt-0.5">
+                      {editingPage.title}
+                    </h4>
+                    <p className="text-xs text-text-muted mt-1">
+                      Bu başlık ve rozet, ziyaretçilerin sayfa tepesinde göreceği banner alanıdır.
                     </p>
-                    <div className="relative w-full h-64 sm:h-80 rounded-2xl overflow-hidden border border-border bg-black/60 shadow-inner">
-                      {editingPage.heroImageUrl ? (
-                        <Image
-                          src={editingPage.heroImageUrl}
-                          alt="Önizleme"
-                          fill
-                          sizes="100vw"
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-text-muted gap-2">
-                          <ImageIcon className="w-8 h-8" />
-                          <span>Görsel bağlantısı girilmedi</span>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
-                      <div className="absolute bottom-4 left-4 right-4 p-4 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 pointer-events-none">
-                        <span className="text-[10px] text-gold uppercase tracking-wider font-semibold">
-                          {editingPage.badgeText}
-                        </span>
-                        <h4 className="text-base font-heading text-cream mt-0.5">
-                          {editingPage.title}
-                        </h4>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Quick Unsplash Preset Buttons */}
-                  <div>
-                    <p className="text-xs font-medium text-text-secondary mb-2">
-                      Hızlı Örnek Düğün & Salon Görselleri
-                    </p>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {[
-                        {
-                          name: "Kristal Salon",
-                          url: "https://images.unsplash.com/photo-1519741497674-611481863552?w=1920&q=80",
-                        },
-                        {
-                          name: "Kır Bahçesi",
-                          url: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=1920&q=80",
-                        },
-                        {
-                          name: "Gelin & Damat Masası",
-                          url: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=1920&q=80",
-                        },
-                        {
-                          name: "Gurme Menü & Ziyafet",
-                          url: "https://images.unsplash.com/photo-1544077960-604201fe74bc?w=1920&q=80",
-                        },
-                      ].map((preset, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() =>
-                            setEditingPage({
-                              ...editingPage,
-                              heroImageUrl: preset.url,
-                            })
-                          }
-                          className="p-2 rounded-xl bg-surface border border-border hover:border-gold/50 text-left transition-colors cursor-pointer group"
-                        >
-                          <p className="text-xs font-medium text-cream group-hover:text-gold">
-                            {preset.name}
-                          </p>
-                          <p className="text-[10px] text-text-muted mt-0.5">Seç & Uygula</p>
-                        </button>
-                      ))}
-                    </div>
                   </div>
                 </div>
               )}

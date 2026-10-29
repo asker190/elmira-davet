@@ -1,4 +1,5 @@
 import { getPageBySlug, extractStaticFields } from "@/lib/cms/page-service";
+import { getSiteSettings } from "@/lib/settings";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -35,16 +36,44 @@ const FEATURE_ICONS: Record<string, any> = {
 };
 
 const DEFAULT_FEATURES = [
-  { title: "Kapalı Otopark", description: "500+ araçlık ücretsiz ve güvenli kapalı otopark alanı.", icon: "Car" },
-  { title: "Profesyonel Ekip", description: "Deneyimli organizasyon, servis ve mutfak ekibiyle kusursuz hizmet.", icon: "Users" },
-  { title: "Canlı Müzik", description: "Ödüllü orkestra ve ses sistemiyle geceyi taçlandırın.", icon: "Music" },
-  { title: "Geniş Yeşil Alan", description: "300 kişilik romantik Kır Bahçesi ile yıldızlar altında davet.", icon: "Trees" },
-  { title: "Özel Konsept", description: "Her çifte özel dekorasyon ve tema tasarımı.", icon: "HeartHandshake" },
-  { title: "Premium Hizmet", description: "VIP karşılama, gelin odası ve özel ikramlarla ayrıcalıklı deneyim.", icon: "Sparkles" },
+  {
+    title: "Kristal Salon (600 Kişi)",
+    description: "Geniş dans pisti, yüksek tavan mimarisi ve görkemli kristal avizeler ile lüks kapalı salon.",
+    icon: "Users",
+  },
+  {
+    title: "Kır Bahçesi (300 Kişi)",
+    description: "Yemyeşil doğa manzarası, açık hava dans pisti ve peri masalı aydınlatmalarıyla romantik bahçe.",
+    icon: "Trees",
+  },
+  {
+    title: "Akustik Ses & Robotik Işık",
+    description: "Yankısız ses mimarisi, dijital ışık şovları ve canlı orkestra sahnesi ile üst düzey eğlence.",
+    icon: "Music",
+  },
+  {
+    title: "Ücretsiz Otopark & Vale",
+    description: "Gaziosmanpaşa merkezde geniş özel otopark alanı ve profesyonel vale hizmeti.",
+    icon: "Car",
+  },
+  {
+    title: "Özel Gelin & Damat Süiti",
+    description: "Düğün öncesi dinlenebileceğiniz, konforlu ve geniş hazırlık odası.",
+    icon: "HeartHandshake",
+  },
+  {
+    title: "Gurme Menüler & İkramlar",
+    description: "Usta aşçılarımızın hazırladığı sıcak yemekli, kokteyl veya açık büfe zengin lezzetler.",
+    icon: "Sparkles",
+  },
 ];
 
 export default async function AboutPage() {
-  const page = await getPageBySlug("hakkimizda");
+  const [page, settings] = await Promise.all([
+    getPageBySlug("hakkimizda"),
+    getSiteSettings(),
+  ]);
+
   const fields = page
     ? extractStaticFields(page)
     : {
@@ -58,11 +87,28 @@ export default async function AboutPage() {
       };
 
   const paragraphs = fields.bodyHtml
-    ? fields.bodyHtml.replace(/<[^>]+>/g, "").split("\n\n").filter(Boolean)
+    ? fields.bodyHtml
+        .split(/<\/p>\s*<p>|\n\n/)
+        .map((p) => p.replace(/<[^>]+>/g, "").trim())
+        .filter(Boolean)
     : [
-        "Elmira Davet Salonu, Gaziosmanpaşa merkezde yer alan eşsiz konumu, 600 kişilik kapalı Kristal Salon'u ve 300 kişilik Kır Bahçesi ile yeni evlenen çiftlerimize unutulmaz bir davet deneyimi yaşatıyor.",
+        settings.aboutText ||
+          "Elmira Davet Salonu, Gaziosmanpaşa merkezde yer alan eşsiz konumu, 600 kişilik kapalı Kristal Salon'u ve 300 kişilik Kır Bahçesi ile yeni evlenen çiftlerimize unutulmaz bir davet deneyimi yaşatıyor.",
         "Rakiplerimizden bizi ayıran en önemli fark; hazır şablonların ötesine geçerek her çiftimize özel konsept tasarımı, kişiye özel menü tadımları ve düğün gününde birebir eşlik eden profesyonel organizasyon ekibimizdir.",
       ];
+
+  // Dynamic features from CMS content
+  const featuresBlock = page?.content?.find((b) => b.type === "features");
+  const featureItems =
+    featuresBlock?.attrs?.items && featuresBlock.attrs.items.length > 0
+      ? featuresBlock.attrs.items
+      : DEFAULT_FEATURES;
+  const featureBadge = featuresBlock?.attrs?.badgeText || "Konfor ve İhtişam";
+  const featureTitle = featuresBlock?.attrs?.title || "Ayrıcalıklarımız & Donanımımız";
+
+  // Optional counters block from CMS content
+  const countersBlock = page?.content?.find((b) => b.type === "counters");
+  const counterItems = countersBlock?.attrs?.items;
 
   return (
     <div className="pt-28 pb-20 space-y-20">
@@ -131,21 +177,21 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      {/* Facilities Grid */}
+      {/* Facilities Grid (Ayrıcalıklarımız & Donanımımız) */}
       <section className="bg-surface/50 border-y border-border py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <span className="text-xs uppercase tracking-[0.25em] text-gold font-medium">
-              Konfor ve İhtişam
+              {featureBadge}
             </span>
             <h3 className="text-3xl font-heading text-cream">
-              Ayrıcalıklarımız & Donanımımız
+              {featureTitle}
             </h3>
             <div className="divider-gold" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {DEFAULT_FEATURES.map((f, i) => {
+            {featureItems.map((f: any, i: number) => {
               const IconComponent = (f.icon && FEATURE_ICONS[f.icon]) || Sparkles;
               return (
                 <div

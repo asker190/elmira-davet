@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import type { BlockNode } from "@/lib/cms/types";
 import { MediaPickerModal } from "./media-picker-modal";
 import { Image as ImageIcon, Sparkles, AlertCircle, Link as LinkIcon } from "lucide-react";
+import { ImageCropUpload } from "@/components/admin/ui/image-crop-upload";
 
 interface BlockSettingsProps {
   block: BlockNode;
@@ -73,23 +74,13 @@ export function BlockSettings({ block, onUpdateAttrs, isAdmin = true }: BlockSet
           </div>
 
           <div>
-            <label className="block mb-1 font-medium text-cream/80">Arka Plan Görseli</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={attrs.imageUrl || ""}
-                onChange={(e) => update({ imageUrl: e.target.value })}
-                className="flex-1 px-2.5 py-1.5 bg-black/40 border border-gold/20 rounded text-cream text-xs outline-none"
-              />
-              <button
-                type="button"
-                onClick={() => openMediaPicker("imageUrl")}
-                className="px-2.5 py-1.5 bg-gold/15 border border-gold/30 rounded text-gold hover:bg-gold/25"
-                title="Galeriden Seç"
-              >
-                <ImageIcon className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            <ImageCropUpload
+              label="Arka Plan Görseli"
+              value={attrs.imageUrl || ""}
+              onChange={(url) => update({ imageUrl: url, posterUrl: attrs.posterUrl || url })}
+              aspectRatio="16/9"
+              category="Sayfalar"
+            />
           </div>
 
           {attrs.mediaType === "video" && (
@@ -106,28 +97,14 @@ export function BlockSettings({ block, onUpdateAttrs, isAdmin = true }: BlockSet
               </div>
 
               <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="font-medium text-cream/80">Video Posteri (Zorunlu PG-B-03)</label>
-                  {!attrs.posterUrl && (
-                    <span className="text-[10px] text-amber-300">Zorunlu!</span>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={attrs.posterUrl || ""}
-                    onChange={(e) => update({ posterUrl: e.target.value })}
-                    className="flex-1 px-2.5 py-1.5 bg-black/40 border border-gold/20 rounded text-cream text-xs outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => openMediaPicker("posterUrl")}
-                    className="px-2.5 py-1.5 bg-gold/15 border border-gold/30 rounded text-gold hover:bg-gold/25"
-                  >
-                    <ImageIcon className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                <p className="text-[10px] text-cream/40 mt-1">Mobilde video yerine bu poster yüklenir.</p>
+                <ImageCropUpload
+                  label="Video Posteri (Zorunlu PG-B-03)"
+                  value={attrs.posterUrl || ""}
+                  onChange={(url) => update({ posterUrl: url })}
+                  aspectRatio="16/9"
+                  category="Sayfalar"
+                  description="Mobilde video yerine bu poster yüklenir."
+                />
               </div>
             </>
           )}
@@ -270,6 +247,26 @@ export function BlockSettings({ block, onUpdateAttrs, isAdmin = true }: BlockSet
               className="w-full px-2.5 py-1.5 bg-black/40 border border-gold/20 rounded text-cream text-xs outline-none resize-none"
             />
           </div>
+
+          {(attrs.badgeText === "AVANTAJLAR" || (attrs.text && String(attrs.text).toLowerCase().includes("standart"))) && (
+            <div className="p-2.5 rounded-lg bg-gold/10 border border-gold/30 text-[11px] text-cream/90 space-y-2">
+              <div className="flex items-center gap-1.5 text-gold font-medium">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Ayrıcalıklar & Neden Elmira Vitrini</span>
+              </div>
+              <p className="text-cream/70 text-[10px] leading-relaxed">
+                Bu bölüm ana sayfadaki 4 ayrıcalık kartı ve vitrin fotoğrafı ile birlikte çalışır. Kartları, açıklamaları ve fotoğrafı doğrudan <strong>İçerik Yönetimi &gt; Ayrıcalıklar & Hakkımızda</strong> sekmesinden de bilgisayarınızdan görsel yükleyerek yönetebilirsiniz.
+              </p>
+              <a
+                href="/admin/icerik"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] text-gold hover:underline font-semibold"
+              >
+                İçerik Yönetimine Git &rarr;
+              </a>
+            </div>
+          )}
         </div>
       )}
 
@@ -293,22 +290,13 @@ export function BlockSettings({ block, onUpdateAttrs, isAdmin = true }: BlockSet
       {type === "image" && (
         <div className="space-y-3">
           <div>
-            <label className="block mb-1 font-medium text-cream/80">Görsel URL'si</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={attrs.url || ""}
-                onChange={(e) => update({ url: e.target.value })}
-                className="flex-1 px-2.5 py-1.5 bg-black/40 border border-gold/20 rounded text-cream text-xs outline-none"
-              />
-              <button
-                type="button"
-                onClick={() => openMediaPicker("image_block")}
-                className="px-2.5 py-1.5 bg-gold/15 border border-gold/30 rounded text-gold hover:bg-gold/25"
-              >
-                <ImageIcon className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            <ImageCropUpload
+              label="Görsel Seçimi"
+              value={attrs.url || ""}
+              onChange={(url) => update({ url })}
+              aspectRatio={attrs.aspectRatio || "16/9"}
+              category="Sayfalar"
+            />
           </div>
 
           <div>
@@ -469,6 +457,96 @@ export function BlockSettings({ block, onUpdateAttrs, isAdmin = true }: BlockSet
             />
             <span>Yeni Sekmede Aç (rel="noopener")</span>
           </label>
+        </div>
+      )}
+
+      {/* ─── Features (Ayrıcalıklarımız & Donanımımız) Block Settings ─── */}
+      {type === "features" && (
+        <div className="space-y-4">
+          <div>
+            <label className="block mb-1 font-medium text-cream/80">Üst Rozet Metni</label>
+            <input
+              type="text"
+              value={attrs.badgeText || ""}
+              onChange={(e) => update({ badgeText: e.target.value })}
+              placeholder="Konfor ve İhtişam"
+              className="w-full px-2.5 py-1.5 bg-black/40 border border-gold/20 rounded text-cream text-xs outline-none"
+            />
+          </div>
+          <div>
+            <label className="block mb-1 font-medium text-cream/80">Bölüm Başlığı</label>
+            <input
+              type="text"
+              value={attrs.title || ""}
+              onChange={(e) => update({ title: e.target.value })}
+              placeholder="Ayrıcalıklarımız & Donanımımız"
+              className="w-full px-2.5 py-1.5 bg-black/40 border border-gold/20 rounded text-cream text-xs outline-none"
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="font-medium text-cream/80">Özellik Kartları ({attrs.items?.length || 0})</label>
+              <button
+                type="button"
+                onClick={() => {
+                  const items = attrs.items ? [...attrs.items] : [];
+                  items.push({
+                    title: "Yeni Ayrıcalık",
+                    description: "Özellik açıklaması",
+                    icon: "Sparkles",
+                  });
+                  update({ items });
+                }}
+                className="px-2 py-1 bg-gold/15 border border-gold/30 rounded text-gold text-[11px] hover:bg-gold/25"
+              >
+                + Kart Ekle
+              </button>
+            </div>
+
+            <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+              {(attrs.items || []).map((it: any, idx: number) => (
+                <div key={idx} className="p-2.5 rounded-lg bg-black/30 border border-gold/15 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-gold">Kart #{idx + 1}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const items = [...attrs.items];
+                        items.splice(idx, 1);
+                        update({ items });
+                      }}
+                      className="text-red-400 hover:text-red-300 text-[10px]"
+                    >
+                      Sil
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={it.title || ""}
+                    onChange={(e) => {
+                      const items = [...attrs.items];
+                      items[idx] = { ...items[idx], title: e.target.value };
+                      update({ items });
+                    }}
+                    placeholder="Başlık"
+                    className="w-full px-2 py-1 bg-black/50 border border-white/10 rounded text-cream text-xs outline-none"
+                  />
+                  <textarea
+                    rows={2}
+                    value={it.description || ""}
+                    onChange={(e) => {
+                      const items = [...attrs.items];
+                      items[idx] = { ...items[idx], description: e.target.value };
+                      update({ items });
+                    }}
+                    placeholder="Açıklama"
+                    className="w-full px-2 py-1 bg-black/50 border border-white/10 rounded text-cream text-xs outline-none resize-none"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 

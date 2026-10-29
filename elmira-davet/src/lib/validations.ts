@@ -190,7 +190,7 @@ export type TestimonialFormData = z.infer<typeof testimonialSchema>;
 // ─── Site Settings ───────────────────────────────────────
 
 export const siteSettingsSchema = z.object({
-  siteName: z.string().min(1),
+  siteName: z.string().optional().default(""),
   logoUrl: z.string().optional(),
   slogan: z.string().optional(),
   phone: z.string().optional(),

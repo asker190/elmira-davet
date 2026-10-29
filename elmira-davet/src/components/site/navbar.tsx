@@ -8,6 +8,7 @@ import { Menu, X, Phone, CalendarCheck2 } from "lucide-react";
 interface NavbarProps {
   siteName?: string;
   phone?: string;
+  logoUrl?: string;
 }
 
 const navLinks = [
@@ -25,6 +26,7 @@ const navLinks = [
 export function Navbar({
   siteName = "Elmira Davet",
   phone = "+90 555 123 45 67",
+  logoUrl,
 }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -51,9 +53,17 @@ export function Navbar({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <span className="text-xl sm:text-2xl font-heading tracking-wide text-gradient-gold group-hover:opacity-90 transition-opacity">
-              {siteName}
-            </span>
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt={siteName || "Elmira Davet"}
+                className="h-10 sm:h-12 w-auto max-w-[180px] sm:max-w-[240px] object-contain group-hover:opacity-90 transition-opacity"
+              />
+            ) : (
+              <span className="text-xl sm:text-2xl font-heading tracking-wide text-gradient-gold group-hover:opacity-90 transition-opacity">
+                {siteName || "Elmira Davet"}
+              </span>
+            )}
           </Link>
 
           {/* Desktop Navigation */}

@@ -18,6 +18,7 @@ import {
   Globe,
 } from "lucide-react";
 import { saveSiteSettings } from "../actions";
+import { ImageUploadField } from "@/components/admin/ui/image-upload-field";
 
 interface SettingsClientProps {
   initialSettings: Record<string, string>;
@@ -152,11 +153,11 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-text-secondary mb-1">
-                  Site / Salon İsmi *
+                  Site / Salon İsmi (Logo yüklüyse boş bırakılabilir)
                 </label>
                 <input
                   type="text"
-                  required
+                  placeholder="Elmira Davet"
                   value={formData.siteName}
                   onChange={(e) =>
                     setFormData({ ...formData, siteName: e.target.value })
@@ -180,39 +181,15 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
               </div>
 
               {/* Logo Settings */}
-              <div className="md:col-span-2 p-4 rounded-xl bg-bg-secondary border border-border space-y-3">
-                <label className="block text-xs font-semibold text-gold">
-                  Marka Logosu
-                </label>
-                <div className="flex flex-col sm:flex-row items-center gap-4">
-                  <div className="w-16 h-16 rounded-xl bg-surface border border-border flex items-center justify-center overflow-hidden shrink-0">
-                    {formData.logoUrl ? (
-                      <img
-                        src={formData.logoUrl}
-                        alt="Logo Önizleme"
-                        className="w-full h-full object-contain p-1"
-                      />
-                    ) : (
-                      <span className="text-xl font-heading text-gold font-bold">
-                        E
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex-1 w-full space-y-1">
-                    <input
-                      type="url"
-                      value={formData.logoUrl}
-                      onChange={(e) =>
-                        setFormData({ ...formData, logoUrl: e.target.value })
-                      }
-                      placeholder="https://... logo görseli URL adresi"
-                      className="w-full px-3.5 py-2 bg-surface border border-border rounded-xl text-xs text-cream focus:outline-hidden focus:border-gold font-mono"
-                    />
-                    <p className="text-[11px] text-text-muted">
-                      Şeffaf PNG veya SVG formatında yatay logo önerilir (örn: 240x80 px).
-                    </p>
-                  </div>
-                </div>
+              <div className="md:col-span-2">
+                <ImageUploadField
+                  label="Marka Logosu (Site Başlığı & Alt Bilgi)"
+                  value={formData.logoUrl}
+                  onChange={(url) => setFormData({ ...formData, logoUrl: url })}
+                  recommendedDimensions="Önerilen: 240x60 px (Yatay Şeffaf PNG / SVG)"
+                  aspectRatio="logo"
+                  helperText="Web sitesi üst menüsünde (Header) ve alt bilgi (Footer) alanında kullanılacak resmi logo. Şeffaf arka planlı PNG veya vektörel SVG formatı en net sonucu verir."
+                />
               </div>
 
               <div className="md:col-span-2">

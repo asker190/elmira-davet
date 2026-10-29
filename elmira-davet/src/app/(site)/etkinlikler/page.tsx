@@ -1,4 +1,5 @@
 import { mockEvents } from "@/lib/mock-data";
+import { getSafeSetting } from "@/lib/local-store";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CalendarCheck2, Sparkles, Heart, Gem, Crown, Building, PartyPopper } from "lucide-react";
@@ -27,8 +28,22 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 export default async function EventsPage() {
-  const cmsPage = await getPageBySlug("etkinlikler");
+  const [cmsPage, customRaw] = await Promise.all([
+    getPageBySlug("etkinlikler"),
+    getSafeSetting("admin_custom_events"),
+  ]);
   const fields = cmsPage ? extractStaticFields(cmsPage) : null;
+
+  let events = mockEvents;
+  if (customRaw) {
+    try {
+      const parsed = JSON.parse(customRaw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        events = parsed.filter((e: any) => e.isActive !== false);
+      }
+    } catch {}
+  }
+
   return (
     <div className="pt-28 pb-20 space-y-20">
       {/* Header Banner */}
@@ -48,7 +63,7 @@ export default async function EventsPage() {
       {/* Events Grid */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {mockEvents.map((event) => {
+          {events.map((event) => {
             const Icon = iconMap[event.iconName] || Sparkles;
 
             return (

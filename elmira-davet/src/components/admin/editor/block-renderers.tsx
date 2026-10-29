@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { BlockNode } from "@/lib/cms/types";
 import { HallCard } from "@/components/site/hall-card";
 import { ReservationForm } from "@/components/site/reservation-form";
+import { FeaturesShowcase } from "@/components/site/features-showcase";
 import {
   mockHalls,
   mockPackages,
@@ -33,6 +34,11 @@ import {
   Check,
   ArrowRight,
   ChevronDown,
+  Users,
+  Trees,
+  Music,
+  Car,
+  HeartHandshake,
 } from "lucide-react";
 
 interface BlockRendererProps {
@@ -137,6 +143,24 @@ export function BlockCanvasRenderer({
     }
 
     case "heading": {
+      // If this is the homepage about-heading / features section, render the full FeaturesShowcase
+      if (
+        attrs.badgeText === "AVANTAJLAR" ||
+        attrs.id === "about-heading" ||
+        attrs.text?.toLowerCase().includes("standart")
+      ) {
+        return (
+          <div className="py-4">
+            <FeaturesShowcase
+              badge={attrs.subtitle || attrs.badgeText || "Gaziosmanpaşa Merkezde Prestijli Konum"}
+              title={attrs.text || "Bölgenin Standartlarını Zarafetle Yeniden Belirliyoruz"}
+              description={attrs.description}
+              isEditor
+            />
+          </div>
+        );
+      }
+
       const level = attrs.level || 2;
       const HeadingTag = `h${level}` as any;
       const isDuplicateH1 = level === 1 && h1Count > 1;
@@ -515,6 +539,105 @@ export function BlockCanvasRenderer({
             {attrs.html || "<!-- HTML kodu -->"}
           </div>
         </div>
+      );
+    }
+
+    case "features": {
+      const FEATURE_ICONS: Record<string, any> = {
+        Users,
+        Trees,
+        Music,
+        Car,
+        HeartHandshake,
+        Sparkles,
+      };
+
+      const defaultItems = [
+        {
+          title: "Kristal Salon (600 Kişi)",
+          description: "Geniş dans pisti, yüksek tavan mimarisi ve görkemli kristal avizeler ile lüks kapalı salon.",
+          icon: "Users",
+        },
+        {
+          title: "Kır Bahçesi (300 Kişi)",
+          description: "Yemyeşil doğa manzarası, açık hava dans pisti ve peri masalı aydınlatmalarıyla romantik bahçe.",
+          icon: "Trees",
+        },
+        {
+          title: "Akustik Ses & Robotik Işık",
+          description: "Yankısız ses mimarisi, dijital ışık şovları ve canlı orkestra sahnesi ile üst düzey eğlence.",
+          icon: "Music",
+        },
+        {
+          title: "Ücretsiz Otopark & Vale",
+          description: "Gaziosmanpaşa merkezde geniş özel otopark alanı ve profesyonel vale hizmeti.",
+          icon: "Car",
+        },
+        {
+          title: "Özel Gelin & Damat Süiti",
+          description: "Düğün öncesi dinlenebileceğiniz, konforlu ve geniş hazırlık odası.",
+          icon: "HeartHandshake",
+        },
+        {
+          title: "Gurme Menüler & İkramlar",
+          description: "Usta aşçılarımızın hazırladığı sıcak yemekli, kokteyl veya açık büfe zengin lezzetler.",
+          icon: "Sparkles",
+        },
+      ];
+
+      if (attrs.showcase || attrs.layout === "showcase" || attrs.badgeText === "AVANTAJLAR") {
+        return (
+          <div className="py-4">
+            <FeaturesShowcase
+              badge={attrs.badgeText || attrs.badge}
+              title={attrs.title}
+              description={attrs.description}
+              items={attrs.items}
+              showcase={attrs.showcase}
+              isEditor
+            />
+          </div>
+        );
+      }
+
+      const items = attrs.items && attrs.items.length > 0 ? attrs.items : defaultItems;
+
+      return (
+        <section className="bg-surface/50 border-y border-border py-12 rounded-3xl">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
+            <div className="text-center max-w-2xl mx-auto space-y-2">
+              <span className="text-xs uppercase tracking-[0.25em] text-gold font-medium">
+                {attrs.badgeText || "Konfor ve İhtişam"}
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-heading text-cream">
+                {attrs.title || "Ayrıcalıklarımız & Donanımımız"}
+              </h3>
+              <div className="divider-gold mx-auto" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {items.map((f: any, i: number) => {
+                const IconComponent = (f.icon && FEATURE_ICONS[f.icon]) || Sparkles;
+                return (
+                  <div
+                    key={i}
+                    className="p-6 rounded-2xl bg-surface border border-border space-y-3 shadow-card"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center text-gold">
+                      <IconComponent className="w-5 h-5" />
+                    </div>
+                    <h4 className="text-base font-heading text-cream">
+                      {f.title}
+                    </h4>
+                    <p className="text-xs text-text-secondary leading-relaxed font-sans">
+                      {f.description}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
       );
     }
 

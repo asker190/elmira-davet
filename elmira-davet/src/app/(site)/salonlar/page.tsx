@@ -1,4 +1,5 @@
 import { mockHalls } from "@/lib/mock-data";
+import { getSafeSetting } from "@/lib/local-store";
 import { getPageBySlug, extractStaticFields } from "@/lib/cms/page-service";
 import { HallCard } from "@/components/site/hall-card";
 import Link from "next/link";
@@ -31,6 +32,17 @@ export default async function HallsPage() {
         seoDescription: "",
       };
 
+  let halls = mockHalls;
+  try {
+    const raw = await getSafeSetting("admin_custom_halls");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        halls = parsed.filter((h: any) => h.isActive !== false);
+      }
+    }
+  } catch {}
+
   return (
     <div className="pt-28 pb-20 space-y-20">
       {/* Header Banner */}
@@ -52,7 +64,7 @@ export default async function HallsPage() {
       {/* Halls Grid */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          {mockHalls.map((hall) => (
+          {halls.map((hall) => (
             <HallCard key={hall.id} hall={hall} />
           ))}
         </div>

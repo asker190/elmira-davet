@@ -152,7 +152,13 @@ export default async function ContactPage() {
             {/* Google Map Box */}
             <div className="rounded-3xl overflow-hidden border border-border h-72 bg-surface relative shadow-card">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d48145.43851502476!2d28.8789508!3d41.0664684!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14cab009c9168475%3A0x67399a9a3b723f6e!2zR2F6aW9zbWFucGHFn2EvxLBzdGFuYnVs!5e0!3m2!1str!2str!4v1700000000000"
+                src={(() => {
+                  let url =
+                    settings.mapEmbedUrl?.trim() ||
+                    "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d48145.43851502476!2d28.8789508!3d41.0664684!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14cab009c9168475%3A0x67399a9a3b723f6e!2zR2F6aW9zbWFucGHFn2EvxLBzdGFuYnVs!5e0!3m2!1str!2str!4v1700000000000";
+                  const match = url.match(/src=["']([^"']+)["']/);
+                  return match ? match[1] : url;
+                })()}
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}

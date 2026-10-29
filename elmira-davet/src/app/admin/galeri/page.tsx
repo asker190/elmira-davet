@@ -32,17 +32,35 @@ export default async function AdminGalleryPage() {
     categories = mockGalleryCategories;
   }
 
-  // Check custom gallery setting
-  if (images.length === 0) {
-    try {
-      const customGal = await prisma.siteSetting.findUnique({
-        where: { key: "admin_custom_gallery" },
-      });
-      if (customGal?.value) {
-        images = JSON.parse(customGal.value);
+  // Check custom gallery and custom categories setting
+  try {
+    const { getSafeSetting } = await import("@/lib/local-store");
+    const [raw, rawCats] = await Promise.all([
+      getSafeSetting("admin_custom_gallery"),
+      getSafeSetting("admin_custom_gallery_categories"),
+    ]);
+
+    if (rawCats) {
+      try {
+        const parsedCats = JSON.parse(rawCats);
+        if (Array.isArray(parsedCats) && parsedCats.length > 0) {
+          categories = [
+            ...categories,
+            ...parsedCats.filter(
+              (pc: any) => !categories.some((c: any) => c.id === pc.id || c.slug === pc.slug)
+            ),
+          ];
+        }
+      } catch {}
+    }
+
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        images = parsed;
       }
-    } catch {}
-  }
+    }
+  } catch {}
 
   if (images.length === 0) {
     images = mockGalleryImages;

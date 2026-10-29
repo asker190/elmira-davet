@@ -1,24 +1,34 @@
 import { prisma } from "@/lib/prisma";
 import { mockSettings } from "@/lib/mock-data";
-import { isDatabaseReachable, getSafeSetting, setSafeSetting } from "@/lib/local-store";
+import {
+  isDatabaseReachable,
+  getSafeSetting,
+  setSafeSetting,
+  getAllSafeSettings,
+} from "@/lib/local-store";
 
 export type SiteSettings = Record<string, string>;
 
 /**
  * Fetch all site settings as a key-value object.
- * Falls back to elegant mock settings or local store if DB is offline.
+ * Merges local store over mock settings, and syncs from DB if online.
  */
 export async function getSiteSettings(): Promise<SiteSettings> {
+  const localSettings = getAllSafeSettings();
+  let base: SiteSettings = { ...mockSettings, ...localSettings };
+
   const isOnline = await isDatabaseReachable();
   if (isOnline) {
     try {
       const settings = await prisma.siteSetting.findMany();
       if (settings && settings.length > 0) {
-        return Object.fromEntries(settings.map((s) => [s.key, s.value]));
+        const dbMap = Object.fromEntries(settings.map((s) => [s.key, s.value]));
+        base = { ...base, ...dbMap };
       }
     } catch {}
   }
-  return mockSettings;
+
+  return base;
 }
 
 /**

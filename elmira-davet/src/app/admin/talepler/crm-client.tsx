@@ -67,7 +67,7 @@ const STATUS_CONFIG: Record<
     badgeClass: "bg-purple-500/20 text-purple-300 border-purple-500/30",
   },
   CONFIRMED: {
-    label: "Onaylandı (Sözleşme)",
+    label: "Kapora Alındı (Takvim Kilitlendi)",
     color: "emerald",
     badgeClass: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
   },
@@ -106,8 +106,31 @@ export function CrmClient({ initialLeads }: CrmClientProps) {
   const [activeLeadForNote, setActiveLeadForNote] = useState<CrmLead | null>(null);
   const [newAdminNote, setNewAdminNote] = useState("");
 
+  // Kapora Alındı & Takvim Rezervasyonu Modal State
+  const [confirmingLead, setConfirmingLead] = useState<CrmLead | null>(null);
+  const [confirmData, setConfirmData] = useState({
+    eventDate: new Date().toISOString().split("T")[0],
+    hallPreference: "Kristal Salon",
+    timeSlot: "NIGHT" as "DAY" | "NIGHT" | "FULL",
+    depositAmount: 50000,
+  });
+
   // Status Change Handler
   const handleStatusChange = (leadId: string, newStatus: string) => {
+    if (newStatus === "CONFIRMED") {
+      const target = leads.find((l) => l.id === leadId);
+      if (target) {
+        setConfirmingLead(target);
+        setConfirmData({
+          eventDate: target.eventDate ? target.eventDate.split("T")[0] : new Date().toISOString().split("T")[0],
+          hallPreference: target.hallPreference || "Kristal Salon",
+          timeSlot: (target.timeSlot as any) || "NIGHT",
+          depositAmount: 50000,
+        });
+        return;
+      }
+    }
+
     startTransition(async () => {
       try {
         const res = await updateLeadStatus(leadId, newStatus);
@@ -123,6 +146,46 @@ export function CrmClient({ initialLeads }: CrmClientProps) {
         }
       } catch {
         toast.error("İşlem sırasında bir hata oluştu");
+      }
+    });
+  };
+
+  const handleConfirmDeposit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!confirmingLead) return;
+
+    startTransition(async () => {
+      try {
+        const res = await updateLeadStatus(confirmingLead.id, "CONFIRMED", undefined, {
+          eventDate: confirmData.eventDate,
+          hallPreference: confirmData.hallPreference,
+          timeSlot: confirmData.timeSlot,
+          depositAmount: Number(confirmData.depositAmount),
+        });
+
+        if (res.success) {
+          toast.success(
+            `Kapora alındı ve ${confirmData.eventDate} (${confirmData.timeSlot === "DAY" ? "Gündüz" : "Akşam"}) takvime otomatik kilitlendi!`
+          );
+          setLeads((prev) =>
+            prev.map((l) =>
+              l.id === confirmingLead.id
+                ? {
+                    ...l,
+                    status: "CONFIRMED",
+                    eventDate: confirmData.eventDate,
+                    hallPreference: confirmData.hallPreference,
+                    timeSlot: confirmData.timeSlot,
+                  }
+                : l
+            )
+          );
+          setConfirmingLead(null);
+        } else {
+          toast.error(res.error || "İşlem başarısız");
+        }
+      } catch {
+        toast.error("Hata oluştu");
       }
     });
   };
@@ -868,6 +931,160 @@ export function CrmClient({ initialLeads }: CrmClientProps) {
                 {isPending ? "Kaydediliyor..." : "Notu Kaydet"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: KAPORA ALINDI & TAKVİME KİLİTLE */}
+      {confirmingLead && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-lg bg-surface border border-emerald-500/40 rounded-2xl p-6 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <div className="flex items-center gap-2 text-emerald-400 font-heading font-medium text-base">
+                <CalendarCheck2 className="w-5 h-5 text-emerald-400" />
+                <span>Kapora Alındı & Takvim Rezervasyonu</span>
+              </div>
+              <button
+                onClick={() => setConfirmingLead(null)}
+                className="text-text-muted hover:text-cream text-xs cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Lead Info Banner */}
+            <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between">
+              <div>
+                <span className="text-xs font-bold text-cream block">{confirmingLead.fullName}</span>
+                <span className="text-[11px] text-text-muted block font-mono">{confirmingLead.phone} • {confirmingLead.source}</span>
+              </div>
+              <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-semibold">
+                Sözleşme / Rezervasyon
+              </span>
+            </div>
+
+            <form onSubmit={handleConfirmDeposit} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-text-secondary mb-1">
+                    Kesinleşen Etkinlik Tarihi *
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={confirmData.eventDate}
+                    onChange={(e) =>
+                      setConfirmData({ ...confirmData, eventDate: e.target.value })
+                    }
+                    className="w-full px-3 py-2 text-xs bg-bg-secondary border border-border rounded-xl text-cream focus:outline-hidden focus:border-gold font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-text-secondary mb-1">
+                    Tahsis Edilen Salon *
+                  </label>
+                  <select
+                    value={confirmData.hallPreference}
+                    onChange={(e) =>
+                      setConfirmData({ ...confirmData, hallPreference: e.target.value })
+                    }
+                    className="w-full px-3 py-2 text-xs bg-bg-secondary border border-border rounded-xl text-cream focus:outline-hidden focus:border-gold"
+                  >
+                    <option value="Kristal Salon">Kristal Salon (600 Kişilik)</option>
+                    <option value="Kır Bahçesi">Kır Bahçesi (300 Kişilik)</option>
+                    <option value="Tüm Salonlar">Tüm Salonlar (Komple Tesis)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-text-secondary mb-1.5">
+                  Etkinlik Seansı (Gündüz / Akşam) *
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmData({ ...confirmData, timeSlot: "DAY" })}
+                    className={`py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      confirmData.timeSlot === "DAY"
+                        ? "bg-amber-500/20 border-amber-500 text-amber-300 shadow-sm"
+                        : "bg-bg-secondary border-border text-text-muted hover:text-cream"
+                    }`}
+                  >
+                    <Sun className="w-3.5 h-3.5" />
+                    <span>Gündüz (13-17)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setConfirmData({ ...confirmData, timeSlot: "NIGHT" })}
+                    className={`py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      confirmData.timeSlot === "NIGHT"
+                        ? "bg-indigo-500/20 border-indigo-500 text-indigo-300 shadow-sm"
+                        : "bg-bg-secondary border-border text-text-muted hover:text-cream"
+                    }`}
+                  >
+                    <Moon className="w-3.5 h-3.5" />
+                    <span>Akşam (19-23)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setConfirmData({ ...confirmData, timeSlot: "FULL" })}
+                    className={`py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      confirmData.timeSlot === "FULL"
+                        ? "bg-purple-500/20 border-purple-500 text-purple-300 shadow-sm"
+                        : "bg-bg-secondary border-border text-text-muted hover:text-cream"
+                    }`}
+                  >
+                    <span>Tüm Gün</span>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-text-secondary mb-1">
+                  Alınan Kapora Tutarı (TL)
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  step={1000}
+                  value={confirmData.depositAmount}
+                  onChange={(e) =>
+                    setConfirmData({
+                      ...confirmData,
+                      depositAmount: Number(e.target.value),
+                    })
+                  }
+                  placeholder="50000"
+                  className="w-full px-3 py-2 text-xs bg-bg-secondary border border-border rounded-xl text-cream focus:outline-hidden focus:border-gold font-mono"
+                />
+              </div>
+
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-200/90 leading-relaxed">
+                📌 <strong>Otomatik Takvim Kilidi:</strong> Bu işlem onaylandığında, <strong>{confirmData.eventDate}</strong> tarihindeki <strong>{confirmData.timeSlot === "DAY" ? "Gündüz (13:00 - 17:00)" : confirmData.timeSlot === "NIGHT" ? "Akşam (19:00 - 23:00)" : "Tüm Gün"}</strong> seansı takvimde otomatik olarak <strong>DOLU / KİLİTLİ</strong> olarak işaretlenecek ve sitedeki formlarda tekrar seçilemeyecektir.
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => setConfirmingLead(null)}
+                  className="px-4 py-2 text-xs font-medium text-text-secondary hover:text-text-primary rounded-xl cursor-pointer"
+                >
+                  Vazgeç
+                </button>
+                <button
+                  type="submit"
+                  disabled={isPending}
+                  className="px-5 py-2.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>{isPending ? "Takvime İşleniyor..." : "Kapora Alındı & Takvime Ekle"}</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

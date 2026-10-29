@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getSafeSetting } from "@/lib/local-store";
 import { getPageBySlug, extractStaticFields } from "@/lib/cms/page-service";
 import { Star, MessageSquareQuote, CalendarCheck2 } from "lucide-react";
 import Link from "next/link";
@@ -19,7 +20,7 @@ export async function generateMetadata() {
 }
 
 export default async function TestimonialsPage() {
-  const [dbTestimonials, cmsPage] = await Promise.all([
+  const [dbTestimonials, cmsPage, customRaw] = await Promise.all([
     prisma.testimonial
       .findMany({
         where: { isActive: true },
@@ -27,11 +28,21 @@ export default async function TestimonialsPage() {
       })
       .catch(() => []),
     getPageBySlug("referanslar"),
+    getSafeSetting("admin_custom_testimonials"),
   ]);
   const page = cmsPage ? extractStaticFields(cmsPage) : { title: "Mutlu Çiftlerimiz & Yorumlar", subtitle: "Misafirlerimizin samimi deneyimleri", badgeText: "Gerçek Deneyimler", heroImageUrl: "", bodyHtml: "", seoTitle: "", seoDescription: "" };
 
-  const testimonials =
-    dbTestimonials.length > 0 ? dbTestimonials : mockTestimonials;
+  let testimonials: any[] = mockTestimonials;
+  if (customRaw) {
+    try {
+      const parsed = JSON.parse(customRaw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        testimonials = parsed.filter((t: any) => t.isActive !== false);
+      }
+    } catch {}
+  } else if (dbTestimonials.length > 0) {
+    testimonials = dbTestimonials;
+  }
 
   return (
     <div className="pt-28 pb-20 space-y-16">

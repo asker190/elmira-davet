@@ -4,23 +4,27 @@ import { Phone, Mail, MapPin } from "lucide-react";
 interface FooterProps {
   siteName?: string;
   slogan?: string;
+  logoUrl?: string;
   phone?: string;
   email?: string;
   address?: string;
   instagramUrl?: string;
   facebookUrl?: string;
   youtubeUrl?: string;
+  eventTypes?: Array<{ id: string; title: string; slug?: string }>;
 }
 
 export function Footer({
   siteName = "Elmira Davet",
   slogan = "Hayalinizdeki Düğün Burada Başlıyor",
+  logoUrl,
   phone = "+90 555 123 45 67",
   email = "info@elmira.com",
   address = "Atatürk Mahallesi, Cumhuriyet Caddesi No: 123, Merkez/İstanbul",
   instagramUrl,
   facebookUrl,
   youtubeUrl,
+  eventTypes,
 }: FooterProps) {
   const currentYear = new Date().getFullYear();
 
@@ -34,9 +38,17 @@ export function Footer({
           {/* Brand & Slogan */}
           <div className="space-y-4">
             <Link href="/" className="inline-block">
-              <span className="text-2xl font-heading text-gradient-gold">
-                {siteName}
-              </span>
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt={siteName || "Elmira Davet"}
+                  className="h-12 sm:h-14 w-auto max-w-[200px] object-contain hover:opacity-90 transition-opacity"
+                />
+              ) : (
+                <span className="text-2xl font-heading text-gradient-gold">
+                  {siteName || "Elmira Davet"}
+                </span>
+              )}
             </Link>
             <p className="text-xs text-text-muted leading-relaxed font-accent text-sm">
               {slogan}
@@ -133,12 +145,20 @@ export function Footer({
               Etkinlik Türleri
             </h4>
             <ul className="space-y-2 text-xs text-text-muted">
-              <li>Düğün & Nikah Töreni</li>
-              <li>Nişan & Söz Merasimi</li>
-              <li>Kına Gecesi & Bekarlığa Veda</li>
-              <li>Sünnet Düğünü</li>
-              <li>Kurumsal Davet & Gala Yemekleri</li>
-              <li>Mezuniyet & Özel Kutlamalar</li>
+              {eventTypes && eventTypes.length > 0 ? (
+                eventTypes.slice(0, 6).map((ev, i) => (
+                  <li key={ev.id || i}>{ev.title}</li>
+                ))
+              ) : (
+                <>
+                  <li>Düğün & Nikah Töreni</li>
+                  <li>Nişan & Söz Merasimi</li>
+                  <li>Kına Gecesi & Bekarlığa Veda</li>
+                  <li>Sünnet Düğünü</li>
+                  <li>Kurumsal Davet & Gala Yemekleri</li>
+                  <li>Mezuniyet & Özel Kutlamalar</li>
+                </>
+              )}
             </ul>
           </div>
 

@@ -62,6 +62,13 @@ const navItems = [
     description: "Salon, Paket, Menü, SSS",
   },
   {
+    href: "/admin/bolumler",
+    label: "Sayfa Bölümleri",
+    badge: null,
+    icon: Layers,
+    description: "Ana Sayfa Blok Hiyerarşisi & Sıralama",
+  },
+  {
     href: "/admin/galeri",
     label: "Galeri & Medya",
     badge: null,

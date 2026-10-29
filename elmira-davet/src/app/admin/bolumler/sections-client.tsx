@@ -16,6 +16,7 @@ import {
   Save,
 } from "lucide-react";
 import { savePageSectionsConfig } from "../actions";
+import { ImageCropUpload } from "@/components/admin/ui/image-crop-upload";
 
 export interface PageSectionItem {
   id: string;
@@ -280,23 +281,21 @@ export function SectionsClient({ initialSections }: SectionsClientProps) {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-[11px] font-medium text-text-muted mb-1">
-                      Arka Plan Görseli / İllüstrasyon URL (İsteğe Bağlı)
-                    </label>
-                    <input
-                      type="url"
+                    <ImageCropUpload
+                      label="Arka Plan Görseli / İllüstrasyon"
+                      description="Bilgisayarınızdan görsel yükleyin veya galeriden seçin."
                       value={sec.imageUrl || ""}
-                      onChange={(e) =>
+                      onChange={(url) =>
                         setSections((prev) =>
                           prev.map((s) =>
                             s.id === sec.id
-                              ? { ...s, imageUrl: e.target.value }
+                              ? { ...s, imageUrl: url }
                               : s
                           )
                         )
                       }
-                      placeholder="https://images.unsplash.com/..."
-                      className="w-full px-3 py-1.5 bg-bg-secondary border border-border rounded-lg text-xs text-cream focus:outline-hidden focus:border-gold font-mono"
+                      aspectRatio="16/9"
+                      category="Bölümler"
                     />
                   </div>
                 </div>

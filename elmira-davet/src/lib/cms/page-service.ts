@@ -105,34 +105,35 @@ export function getDefaultSeedPages(): PageData[] {
         description: "14 yıllık organizasyon tecrübesi, ödüllü şefleri ve seçkin mimarisiyle Elmira Davet hakkında detaylı bilgi.",
       },
       content: [
-        createNewBlock("hero", {
-          imageUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80",
-          posterUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80",
-          title: "Zarafetin Gaziosmanpaşa'daki Adresi",
-          subtitle: "14 yıllık organizasyon tecrübemiz ve yüksek tavanlı saray mimarimizle hayallerinizi gerçeğe dönüştürüyoruz.",
-          primaryButtonText: "Salonlarımızı İnceleyin",
-          primaryButtonUrl: "/salonlar",
-        }),
         createNewBlock("heading", {
-          badgeText: "BİZ KİMİZ?",
-          text: "Kusursuz Davetlerin Güvenilir İsmi",
-          subtitle: "Her organizasyon bir sanat eseri titizliğiyle planlanır ve yönetilir.",
-          level: 2,
+          badgeText: "İstanbul - Gaziosmanpaşa",
+          text: "Zarafetin Gaziosmanpaşa'daki Adresi",
+          subtitle: "Elmira Davet Salonu olarak, hayatınızın en mutlu gününü zarafet, konfor ve profesyonellikle buluşturuyoruz.",
+          level: 1,
+          align: "center",
+        }),
+        createNewBlock("image", {
+          imageUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&q=80",
+          alt: "Elmira Davet & Balo Salonları",
+          caption: "Bölgenin En Seçkin Davet Kompleksi - Gaziosmanpaşa",
         }),
         createNewBlock("text", {
-          html: "<p>Elmira Davet & Balo Salonları, İstanbul Gaziosmanpaşa merkezinde yer alan, yüksek tavanlı, kolonsuz ferah mimarisi ve son teknoloji ışık-ses sistemleriyle donatılmış lüks bir organizasyon kompleksidir.</p><p>Misafirlerimizin memnuniyetini her zaman ön planda tutarak, profesyonel orkestra, usta aşçılarımızın hazırladığı gurme menüler ve deneyimli servis personeliyle gecenizi unutulmaz kılıyoruz.</p>",
+          html: "<p>Elmira Davet Salonu, Gaziosmanpaşa merkezde yer alan eşsiz konumu, 600 kişilik kapalı Kristal Salon'u ve 300 kişilik Kır Bahçesi ile yeni evlenen çiftlerimize unutulmaz bir davet deneyimi yaşatıyor.</p><p>Rakiplerimizden bizi ayıran en önemli fark; hazır şablonların ötesine geçerek her çiftimize özel konsept tasarımı, kişiye özel menü tadımları ve düğün gününde birebir eşlik eden profesyonel organizasyon ekibimizdir.</p>",
         }),
-        createNewBlock("counters"),
         createNewBlock("button_cta", {
-          text: "Hayalinizdeki Geceyi Birlikte Planlayalım",
-          buttonText: "Randevu Alın",
+          text: "Salonu Ziyaret Edin & Randevu Alın",
+          buttonText: "Hemen Teklif Alın",
           buttonUrl: "/iletisim",
+        }),
+        createNewBlock("features", {
+          badgeText: "Konfor ve İhtişam",
+          title: "Ayrıcalıklarımız & Donanımımız",
         }),
       ],
     },
     {
       id: "page_salonlar",
-      title: "Salonlarımız & Davet Alanları",
+      title: "Davet Alanlarımız & Konseptlerimiz",
       slug: "salonlar",
       status: "PUBLISHED",
       parentId: null,
@@ -151,18 +152,12 @@ export function getDefaultSeedPages(): PageData[] {
         description: "600 kişilik Kristal Balo Salonu ve 300 kişilik Kır Bahçesi alanlarımızın fotoğrafları ve özellikleri.",
       },
       content: [
-        createNewBlock("hero", {
-          imageUrl: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1920&q=80",
-          posterUrl: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1920&q=80",
-          title: "İhtişam ve Zarafet Dolu Davet Alanlarımız",
-          subtitle: "600 kişilik saray konseptli Kristal Salon ve 300 kişilik romantik Kır Bahçemiz",
-          primaryButtonText: "Fiyat Teklifi Al",
-          primaryButtonUrl: "/iletisim",
-        }),
         createNewBlock("heading", {
-          badgeText: "SALONLAR",
-          text: "Her Zevke ve Kapasiteye Uygun Mekanlar",
-          level: 2,
+          badgeText: "Özel Mimari & Yüksek Tavan",
+          text: "Davet Alanlarımız & Konseptlerimiz",
+          subtitle: "Büyüleyici Kristal Salon ve Doğayla İç İçe Kır Bahçesi",
+          level: 1,
+          align: "center",
         }),
         createNewBlock("hall_cards", { displayMode: "all", columns: 2 }),
         createNewBlock("reservation_form"),
@@ -170,7 +165,7 @@ export function getDefaultSeedPages(): PageData[] {
     },
     {
       id: "page_paketler",
-      title: "Paketler & Menüler",
+      title: "Düğün & Davet Paketlerimiz",
       slug: "paketler",
       status: "PUBLISHED",
       parentId: null,
@@ -189,26 +184,25 @@ export function getDefaultSeedPages(): PageData[] {
         description: "Yemekli, kokteylli ve kına özel paket içeriklerimizi, zengin menülerimizi inceleyin.",
       },
       content: [
-        createNewBlock("hero", {
-          imageUrl: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=1920&q=80",
-          posterUrl: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=1920&q=80",
-          title: "Kişiye Özel Davet ve Düğün Paketleri",
-          subtitle: "Her bütçeye ve konsepte uygun gala menüleri, kokteyl ikramları ve zengin hizmet içerikleri",
-          primaryButtonText: "Menü Detayları",
-          primaryButtonUrl: "/iletisim",
-        }),
         createNewBlock("heading", {
-          badgeText: "ORGANİZASYON PAKETLERİ",
-          text: "Zengin İçerik, Şeffaf Fiyatlandırma",
-          level: 2,
+          badgeText: "Gurme Menüler & Şeffaf Fiyatlandırma",
+          text: "Düğün & Davet Paketlerimiz",
+          subtitle: "Her bütçeye ve zevke uygun, şeffaf içerikli düğün ve davet paketleri",
+          level: 1,
+          align: "center",
         }),
         createNewBlock("packages", { layout: "cards", displayMode: "all" }),
-        createNewBlock("reservation_form"),
+        createNewBlock("faq", { displayMode: "all" }),
+        createNewBlock("button_cta", {
+          text: "Hemen Randevu Oluşturun",
+          buttonText: "Teklif Alın",
+          buttonUrl: "/iletisim",
+        }),
       ],
     },
     {
       id: "page_etkinlikler",
-      title: "Etkinlik Türleri",
+      title: "Her Özel Güne Kusursuz Dokunuş",
       slug: "etkinlikler",
       status: "PUBLISHED",
       parentId: null,
@@ -227,18 +221,12 @@ export function getDefaultSeedPages(): PageData[] {
         description: "Düğün, kına gecesi, nişan, sünnet düğünü ve kurumsal organizasyon çözümleri.",
       },
       content: [
-        createNewBlock("hero", {
-          imageUrl: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1920&q=80",
-          posterUrl: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1920&q=80",
-          title: "Etkinlik & Organizasyon Türleri",
-          subtitle: "Düğün, Kına Gecesi, Nişan, Sünnet ve Kurumsal Toplantılar",
-          primaryButtonText: "Teklif Al",
-          primaryButtonUrl: "/iletisim",
-        }),
         createNewBlock("heading", {
-          badgeText: "HİZMETLERİMİZ",
-          text: "Hayal Ettiğiniz Tüm Kutlamalar İçin",
-          level: 2,
+          badgeText: "Hizmet Yelpazemiz",
+          text: "Her Özel Güne Kusursuz Dokunuş",
+          subtitle: "Evlilik merasimlerinden geleneksel kına gecelerine, sünnet törenlerinden kurumsal galalara kadar her organizasyon türü için uzman kadromuzla yanınızdayız.",
+          level: 1,
+          align: "center",
         }),
         createNewBlock("hall_cards", { displayMode: "all" }),
         createNewBlock("button_cta", {
@@ -269,20 +257,19 @@ export function getDefaultSeedPages(): PageData[] {
         description: "Salon süslemeleri, gelin yolu, sahne ışıklandırmaları ve mutlu çiftlerimizin kareleri.",
       },
       content: [
-        createNewBlock("hero", {
-          imageUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80",
-          posterUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80",
-          title: "Fotoğraf & Video Galerisi",
-          subtitle: "Işıltılı anlardan ve mutlu çiftlerimizin anılarından seçilen özel kareler",
-          primaryButtonText: "Salonları Gör",
-          primaryButtonUrl: "/salonlar",
-        }),
         createNewBlock("heading", {
-          badgeText: "GÖRSEL YOLCULUK",
-          text: "Büyüleyici Atmosferimizden Kareler",
-          level: 2,
+          badgeText: "Görsel Yolculuk",
+          text: "Fotoğraf & Video Galerisi",
+          subtitle: "Işıltılı anlardan ve mutlu çiftlerimizin anılarından seçilen özel kareler",
+          level: 1,
+          align: "center",
         }),
         createNewBlock("gallery", { layout: "masonry", columns: 3 }),
+        createNewBlock("button_cta", {
+          text: "Salonu Canlı Görmek İster Misiniz?",
+          buttonText: "Randevu Alın",
+          buttonUrl: "/iletisim",
+        }),
       ],
     },
     {
@@ -306,20 +293,19 @@ export function getDefaultSeedPages(): PageData[] {
         description: "Elmira Davet Salonu'nda dünyaevine giren misafirlerimizin gerçek deneyimleri ve değerlendirmeleri.",
       },
       content: [
-        createNewBlock("hero", {
-          imageUrl: "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=1920&q=80",
-          posterUrl: "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=1920&q=80",
-          title: "Mutlu Çiftlerimiz & Yorumlar",
-          subtitle: "Elmira Davet Salonu'nda dünyaevine giren misafirlerimizin gerçek deneyimleri",
-          primaryButtonText: "Teklif Al",
-          primaryButtonUrl: "/iletisim",
-        }),
         createNewBlock("heading", {
-          badgeText: "%99.8 MEMNUNİYET ORANI",
-          text: "Gerçek Çift Deneyimleri",
-          level: 2,
+          badgeText: "%99.8 Memnuniyet Oranı",
+          text: "Mutlu Çiftlerimiz & Yorumlar",
+          subtitle: "Elmira Davet Salonu'nda dünyaevine giren misafirlerimizin gerçek deneyimleri",
+          level: 1,
+          align: "center",
         }),
         createNewBlock("testimonials", { layout: "slider", displayMode: "all" }),
+        createNewBlock("button_cta", {
+          text: "Siz de Bu Mutlu Aileye Katılın",
+          buttonText: "Hemen İletişime Geçin",
+          buttonUrl: "/iletisim",
+        }),
       ],
     },
     {
@@ -343,21 +329,19 @@ export function getDefaultSeedPages(): PageData[] {
         description: "Rezervasyon süreleri, menü tadımı, otopark ve organizasyon detayları hakkında sorular ve yanıtları.",
       },
       content: [
-        createNewBlock("hero", {
-          imageUrl: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1920&q=80",
-          posterUrl: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1920&q=80",
-          title: "Sıkça Sorulan Sorular",
-          subtitle: "Rezervasyon ve organizasyon sürecinizle ilgili aklınıza takılan tüm soruların yanıtları",
-          primaryButtonText: "Bize Ulaşın",
-          primaryButtonUrl: "/iletisim",
-        }),
         createNewBlock("heading", {
-          badgeText: "MERAK EDİLENLER",
-          text: "Soru & Cevap Rehberi",
-          level: 2,
+          badgeText: "Merak Edilenler",
+          text: "Sıkça Sorulan Sorular",
+          subtitle: "Düğün ve rezervasyon sürecinizle ilgili aklınıza takılan tüm soruların yanıtları",
+          level: 1,
+          align: "center",
         }),
         createNewBlock("faq", { displayMode: "all" }),
-        createNewBlock("reservation_form"),
+        createNewBlock("button_cta", {
+          text: "Aklınıza Takılan Başka Bir Soru mu Var?",
+          buttonText: "Bize Yazın",
+          buttonUrl: "/iletisim",
+        }),
       ],
     },
     {
@@ -382,13 +366,12 @@ export function getDefaultSeedPages(): PageData[] {
         description: "Elmira Davet Salonu telefon, adres, konum ve online randevu / teklif formu.",
       },
       content: [
-        createNewBlock("hero", {
-          imageUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80",
-          posterUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80",
-          title: "Hayalinizdeki Gece İçin Bizimle İletişime Geçin",
-          subtitle: "Gaziosmanpaşa merkezde yer alan salonumuzda sizleri ağırlamaktan mutluluk duyacağız.",
-          primaryButtonText: "Hemen Ara",
-          primaryButtonUrl: "tel:02120000000",
+        createNewBlock("heading", {
+          badgeText: "İstanbul - Gaziosmanpaşa",
+          text: "İletişim & Randevu",
+          subtitle: "600 kişilik Kristal Salon ve 300 kişilik Kır Bahçesi alanlarımızı yerinde görmek ve kahvemizi içmek için hemen randevu alın",
+          level: 1,
+          align: "center",
         }),
         createNewBlock("reservation_form"),
         createNewBlock("map", {
@@ -1456,21 +1439,24 @@ export function extractStaticFields(page: PageData): PageStaticFields {
 
   // Hero bloğundan: title, subtitle, heroImageUrl
   const heroBlock = blocks.find((b) => b.type === "hero");
-  // İlk heading bloğundan: badgeText, subtitle (eğer hero yoksa)
+  // İlk heading bloğundan: badgeText, subtitle, text
   const headingBlock = blocks.find((b) => b.type === "heading");
   // Text bloğundan: bodyHtml
   const textBlock = blocks.find((b) => b.type === "text");
+  // Image bloğundan: imageUrl
+  const imageBlock = blocks.find((b) => b.type === "image");
 
-  const title = page.title || "";
+  const title = (headingBlock?.attrs?.level === 1 ? headingBlock?.attrs?.text : null) || page.title || "";
   const subtitle =
-    heroBlock?.attrs?.subtitle ||
     headingBlock?.attrs?.subtitle ||
+    heroBlock?.attrs?.subtitle ||
     "";
   const badgeText =
     headingBlock?.attrs?.badgeText ||
     heroBlock?.attrs?.badgeText ||
     "";
   const heroImageUrl =
+    imageBlock?.attrs?.imageUrl ||
     heroBlock?.attrs?.imageUrl ||
     heroBlock?.attrs?.posterUrl ||
     "";

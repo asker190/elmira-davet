@@ -7,6 +7,14 @@
     "build": "npm --prefix elmira-davet run build",
     "start": "npm --prefix elmira-davet run start",
     "lint": "npm --prefix elmira-davet run lint",
-    "test:visual": "npm --prefix elmira-davet run test:visual"
+    "test:visual": "npm --prefix elmira-davet run test:visual",
+    "deploy": "node scripts/deploy.mjs",
+    "deploy:frontend": "node scripts/deploy.mjs --target=frontend",
+    "deploy:backend": "node scripts/deploy.mjs --target=backend",
+    "deploy:dry": "node scripts/deploy.mjs --dry-run"
+  },
+  "devDependencies": {
+    "basic-ftp": "^6.2.3",
+    "dotenv": "^18.0.9"
   }
 }

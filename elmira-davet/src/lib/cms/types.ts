@@ -25,7 +25,8 @@ export type BlockType =
   | "video"
   | "spacer_divider"
   | "saved_block"
-  | "custom_html";
+  | "custom_html"
+  | "features";
 
 export interface BlockMotionConfig {
   animation:

@@ -125,15 +125,23 @@ export function HeroMask({
           <span className="text-cream font-medium">Elmira Davet Salonu</span>
         </div>
 
-        {/* Heading with Satır/Harf/Kelime Mask Reveal */}
-        <TextReveal
-          text={title}
-          type="words"
-          highlightWords={["Görkemli", "Sahnesi", "Aşkınızın"]}
-          highlightClassName="text-gradient-gold italic font-accent"
-          className="text-4xl sm:text-6xl md:text-7xl font-heading text-cream font-normal tracking-tight leading-[1.18]"
-          as="h1"
-        />
+        {/* Heading */}
+        <h1 className="text-4xl sm:text-6xl md:text-7xl font-heading text-cream font-normal tracking-tight leading-[1.18]">
+          {(title || "Aşkınızın En Görkemli Sahnesi").split(" ").map((word, i) => {
+            const cleaned = word.replace(/[^\p{L}\p{N}]/gu, "").toLowerCase();
+            const isHighlighted = ["görkemli", "sahnesi", "aşkınızın"].includes(cleaned);
+            return (
+              <span
+                key={i}
+                className={`inline-block mr-[0.25em] last:mr-0 py-0.5 ${
+                  isHighlighted ? "text-gradient-gold italic font-accent" : ""
+                }`}
+              >
+                {word}
+              </span>
+            );
+          })}
+        </h1>
 
         {/* Subtitle */}
         <p className="text-text-secondary text-sm sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-sans">

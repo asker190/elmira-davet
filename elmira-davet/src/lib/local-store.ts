@@ -135,6 +135,14 @@ export async function getSafeSetting(key: string): Promise<string | null> {
 }
 
 /**
+ * Returns all safely stored settings as a key-value dictionary.
+ */
+export function getAllSafeSettings(): Record<string, string> {
+  ensureStoreLoaded();
+  return { ...memoryStore };
+}
+
+/**
  * Safely sets a stored key-value item.
  * Saves to local file store immediately, then syncs to Prisma if database is reachable.
  */

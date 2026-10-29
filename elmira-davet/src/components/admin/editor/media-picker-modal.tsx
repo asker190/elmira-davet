@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { X, Image as ImageIcon, Upload, Check, AlertCircle, Sparkles } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { X, Image as ImageIcon, Upload, Check, AlertCircle, Sparkles, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface MediaPickerModalProps {
@@ -22,8 +22,7 @@ export function MediaPickerModal({
   const [selectedUrl, setSelectedUrl] = useState(currentUrl);
   const [altText, setAltText] = useState(currentAlt);
   const [focalPoint, setFocalPoint] = useState("center");
-  const [customUrlInput, setCustomUrlInput] = useState("");
-  const [activeTab, setActiveTab] = useState<"library" | "url" | "upload">("library");
+  const [activeTab, setActiveTab] = useState<"upload" | "library">("upload");
   const [images, setImages] = useState<Array<{ id: string; url: string; title?: string }>>([]);
   const [loading, setLoading] = useState(false);
 
@@ -65,7 +64,22 @@ export function MediaPickerModal({
     if (isOpen) {
       setSelectedUrl(currentUrl);
       setAltText(currentAlt || "");
-      setImages(defaultPresets);
+      fetch("/api/upload")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && Array.isArray(data.items) && data.items.length > 0) {
+            setImages(
+              data.items.map((i: any) => ({
+                id: i.id,
+                url: i.imageUrl || i.url,
+                title: i.title || "Elmira Davet",
+              }))
+            );
+          } else {
+            setImages(defaultPresets);
+          }
+        })
+        .catch(() => setImages(defaultPresets));
     }
   }, [isOpen, currentUrl, currentAlt]);
 
@@ -73,7 +87,7 @@ export function MediaPickerModal({
 
   const handleConfirm = () => {
     if (!selectedUrl) {
-      toast.error("Lütfen bir görsel seçin veya URL girin.");
+      toast.error("Lütfen bilgisayarınızdan bir görsel yükleyin veya galeriden seçin.");
       return;
     }
 
@@ -98,7 +112,7 @@ export function MediaPickerModal({
         <div className="flex items-center justify-between p-4 border-b border-gold/15 bg-white/5">
           <div className="flex items-center gap-2 text-gold font-semibold text-sm">
             <ImageIcon className="w-4 h-4" />
-            <span>Medya Seçici</span>
+            <span>Medya & Fotoğraf Seçici</span>
           </div>
           <button
             onClick={onClose}
@@ -112,6 +126,18 @@ export function MediaPickerModal({
         <div className="flex items-center border-b border-gold/15 bg-black/30 px-4">
           <button
             type="button"
+            onClick={() => setActiveTab("upload")}
+            className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${
+              activeTab === "upload"
+                ? "border-gold text-gold"
+                : "border-transparent text-cream/60 hover:text-cream"
+            }`}
+          >
+            <Upload className="w-3.5 h-3.5" />
+            <span>Bilgisayardan Yükle & Kırp</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setActiveTab("library")}
             className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors ${
               activeTab === "library"
@@ -119,23 +145,108 @@ export function MediaPickerModal({
                 : "border-transparent text-cream/60 hover:text-cream"
             }`}
           >
-            Galeri & Kütüphane
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("url")}
-            className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors ${
-              activeTab === "url"
-                ? "border-gold text-gold"
-                : "border-transparent text-cream/60 hover:text-cream"
-            }`}
-          >
-            Harici Görsel URL'si
+            Medya Galerisi & Arşiv
           </button>
         </div>
 
         {/* Content Body */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {activeTab === "upload" && (
+            <div className="space-y-4">
+              <label
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={async (e) => {
+                  e.preventDefault();
+                  const file = e.dataTransfer.files?.[0];
+                  if (!file) return;
+                  if (!file.type.startsWith("image/")) {
+                    toast.error("Lütfen bir görsel dosyası seçin");
+                    return;
+                  }
+                  setLoading(true);
+                  const toastId = toast.loading("Görsel yükleniyor...");
+                  try {
+                    const fd = new FormData();
+                    fd.append("file", file);
+                    const res = await fetch("/api/upload", { method: "POST", body: fd });
+                    const json = await res.json();
+                    if (json.success && json.url) {
+                      setSelectedUrl(json.url);
+                      if (!altText) setAltText(file.name.replace(/\.[^/.]+$/, ""));
+                      toast.success("Fotoğraf bilgisayardan başarıyla yüklendi!", { id: toastId });
+                    } else {
+                      toast.error(json.error || "Yüklenemedi", { id: toastId });
+                    }
+                  } catch {
+                    toast.error("Bağlantı hatası", { id: toastId });
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                className="border-2 border-dashed border-gold/30 hover:border-gold rounded-2xl p-8 text-center bg-black/30 hover:bg-black/50 transition-all flex flex-col items-center justify-center gap-3 cursor-pointer block"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-gold/10 border border-gold/30 flex items-center justify-center text-gold">
+                  {loading ? (
+                    <Loader2 className="w-7 h-7 animate-spin" />
+                  ) : (
+                    <Upload className="w-7 h-7" />
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <span className="text-sm font-semibold text-cream block">
+                    Bilgisayarınızdan fotoğraf seçmek için tıklayın
+                  </span>
+                  <span className="text-xs text-cream/50 block">
+                    veya fotoğrafı doğrudan bu alana sürükleyip bırakın (PNG, JPG, WebP)
+                  </span>
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={loading}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setLoading(true);
+                    const toastId = toast.loading("Görsel yükleniyor...");
+                    try {
+                      const fd = new FormData();
+                      fd.append("file", file);
+                      const res = await fetch("/api/upload", { method: "POST", body: fd });
+                      const json = await res.json();
+                      if (json.success && json.url) {
+                        setSelectedUrl(json.url);
+                        if (!altText) setAltText(file.name.replace(/\.[^/.]+$/, ""));
+                        toast.success("Fotoğraf başarıyla yüklendi!", { id: toastId });
+                      } else {
+                        toast.error(json.error || "Yüklenemedi", { id: toastId });
+                      }
+                    } catch {
+                      toast.error("Bağlantı hatası", { id: toastId });
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  className="hidden"
+                />
+              </label>
+
+              {selectedUrl && (
+                <div className="p-3 bg-white/5 rounded-xl border border-gold/20 flex items-center gap-3">
+                  <img
+                    src={selectedUrl}
+                    alt="Seçilen Görsel"
+                    className="w-20 h-14 object-cover rounded-lg border border-gold/30"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-xs text-gold font-semibold block">Seçili Görsel</span>
+                    <span className="text-xs text-cream/70 truncate block">{selectedUrl}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === "library" && (
             <div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -173,45 +284,6 @@ export function MediaPickerModal({
                   );
                 })}
               </div>
-            </div>
-          )}
-
-          {activeTab === "url" && (
-            <div className="space-y-3">
-              <label className="block text-xs font-medium text-cream/80">
-                Görsel Web Adresi (https://...)
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="url"
-                  value={customUrlInput}
-                  onChange={(e) => setCustomUrlInput(e.target.value)}
-                  placeholder="https://example.com/salon-fotografi.jpg"
-                  className="flex-1 px-3 py-2 bg-charcoal-800 border border-gold/25 rounded-xl text-cream text-xs focus:border-gold outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!customUrlInput.trim()) return;
-                    setSelectedUrl(customUrlInput.trim());
-                    toast.success("Görsel seçildi");
-                  }}
-                  className="px-4 py-2 bg-gold text-charcoal-900 font-semibold rounded-xl text-xs hover:bg-gold-light transition-colors"
-                >
-                  Uygula
-                </button>
-              </div>
-
-              {selectedUrl && (
-                <div className="mt-3 p-3 bg-white/5 rounded-xl border border-gold/15 flex items-center gap-3">
-                  <img
-                    src={selectedUrl}
-                    alt="Önizleme"
-                    className="w-20 h-14 object-cover rounded-lg border border-gold/20"
-                  />
-                  <div className="text-xs text-cream/70 truncate flex-1">{selectedUrl}</div>
-                </div>
-              )}
             </div>
           )}
 

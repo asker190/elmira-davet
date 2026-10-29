@@ -5,6 +5,7 @@ import { ToastProvider } from "@/components/providers/toast-provider";
 import { Navbar } from "@/components/site/navbar";
 import { Footer } from "@/components/site/footer";
 import { getSiteSettings } from "@/lib/settings";
+import { getSafeSetting } from "@/lib/local-store";
 import { PageTransition } from "@/components/animations/page-transition";
 import { CustomCursor } from "@/components/ui/custom-cursor";
 import { FloatingWhatsApp } from "@/components/ui/floating-whatsapp";
@@ -26,11 +27,36 @@ export default async function SiteLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const settings = await getSiteSettings();
+  const [settings, eventsRaw] = await Promise.all([
+    getSiteSettings(),
+    getSafeSetting("admin_custom_events").catch(() => null),
+  ]);
+
+  let eventTypes: any[] = [];
+  if (eventsRaw) {
+    try {
+      eventTypes = JSON.parse(eventsRaw);
+    } catch {}
+  }
 
   return (
     <MotionProvider>
       <SmoothScrollProvider>
+        {/* Dynamic Brand Color Injection */}
+        {settings.primaryColor && (
+          <style
+            dangerouslySetInnerHTML={{
+              __html: `
+                :root {
+                  --color-gold: ${settings.primaryColor};
+                  --color-gold-light: ${settings.primaryColor}ee;
+                  --color-gold-dark: ${settings.primaryColor}bb;
+                }
+              `,
+            }}
+          />
+        )}
+
         {/* SEO Structured Data */}
         <SchemaOrg
           siteUrl={process.env.NEXT_PUBLIC_SITE_URL}
@@ -46,6 +72,7 @@ export default async function SiteLayout({
         <Navbar
           siteName={settings.siteName}
           phone={settings.phone}
+          logoUrl={settings.logoUrl}
         />
         <main className="flex-1 overflow-x-hidden">
           <PageTransition>{children}</PageTransition>
@@ -53,12 +80,14 @@ export default async function SiteLayout({
         <Footer
           siteName={settings.siteName}
           slogan={settings.slogan}
+          logoUrl={settings.logoUrl}
           phone={settings.phone}
           email={settings.email}
           address={settings.address}
           instagramUrl={settings.instagramUrl}
           facebookUrl={settings.facebookUrl}
           youtubeUrl={settings.youtubeUrl}
+          eventTypes={eventTypes}
         />
         <FloatingWhatsApp phone={settings.phone || "905551234567"} />
 

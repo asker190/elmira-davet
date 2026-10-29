@@ -98,7 +98,7 @@ export function MasonryGallery({ categories, images }: MasonryGalleryProps) {
                 {/* Dark Hover Reveal Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-6 flex flex-col justify-between">
                   <span className="self-start text-[11px] px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-gold border border-gold/30">
-                    {img.category.name}
+                    {categories.find((c) => c.id === img.categoryId)?.name || img.category?.name || "Elmira Davet"}
                   </span>
 
                   <div className="flex items-end justify-between">
@@ -158,7 +158,7 @@ export function MasonryGallery({ categories, images }: MasonryGalleryProps) {
               <div className="p-6 bg-bg-secondary border-t border-border flex items-center justify-between">
                 <div>
                   <span className="text-xs text-gold uppercase tracking-wider block">
-                    {selectedImage.category.name}
+                    {categories.find((c) => c.id === selectedImage.categoryId)?.name || selectedImage.category?.name || "Elmira Davet"}
                   </span>
                   <h3 className="text-lg font-heading text-cream mt-0.5">
                     {selectedImage.title || selectedImage.alt}

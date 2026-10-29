@@ -132,6 +132,32 @@ export async function submitReservation(
     });
 
     await setSafeSetting("reservations", JSON.stringify(localReservations));
+
+    // Also sync directly into CRM leads pool
+    const rawCrm = await getSafeSetting("admin_crm_leads");
+    let crmLeads: any[] = [];
+    if (rawCrm) {
+      try {
+        crmLeads = JSON.parse(rawCrm);
+      } catch {}
+    }
+    crmLeads.unshift({
+      id: reservationId,
+      fullName,
+      email,
+      phone,
+      eventDate,
+      timeSlot: timeSlot || "NIGHT",
+      eventType,
+      hallPreference: "Kristal Salon (600 Kişilik)",
+      guestCount,
+      budget: guestCount ? guestCount * 400 : 150000,
+      source: "Website",
+      status: "PENDING",
+      notes: message,
+      createdAt: now.toISOString(),
+    });
+    await setSafeSetting("admin_crm_leads", JSON.stringify(crmLeads));
   } catch {}
 
   // ─── 5. Meta Conversions API (CAPI) Integration ───

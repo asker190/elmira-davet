@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/lib/settings";
+import { getSafeSetting } from "@/lib/local-store";
 import { HeroMask } from "@/components/site/hero-mask";
 import { Counter } from "@/components/animations/counter";
 import { Reveal } from "@/components/animations/reveal";
@@ -7,6 +8,7 @@ import { TextReveal } from "@/components/animations/text-reveal";
 import { Parallax } from "@/components/animations/parallax";
 import { HallCard } from "@/components/site/hall-card";
 import { ReservationForm } from "@/components/site/reservation-form";
+import { FeaturesShowcase } from "@/components/site/features-showcase";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -126,7 +128,7 @@ const DEFAULT_SECTIONS: SectionConfig[] = [
   },
   {
     id: "features",
-    name: "Neden Elmira Davet? (Avantajlar)",
+    name: "Neden Elmira Davet? (Hakkımızda & Ayrıcalıklar)",
     badge: "AVANTAJLAR",
     title: "Bölgenin Standartlarını Zarafetle Yeniden Belirliyoruz",
     subtitle: "Gaziosmanpaşa Merkezde Prestijli Konum",
@@ -182,6 +184,10 @@ export default async function HomePage() {
     blockedDates,
     sectionsSetting,
     cmsPage,
+    hallsRaw,
+    statsRaw,
+    featuresRaw,
+    heroVideoRaw,
   ] = await Promise.all([
     getSiteSettings(),
     prisma.heroSlide
@@ -213,14 +219,73 @@ export default async function HomePage() {
       })
       .catch(() => mockTestimonials),
     prisma.blockedDate.findMany().catch(() => []),
-    prisma.siteSetting
-      .findUnique({ where: { key: "home_page_sections" } })
-      .catch(() => null),
+    getSafeSetting("home_page_sections").catch(() => null),
     getPageBySlug("").catch(() => null),
+    getSafeSetting("admin_custom_halls").catch(() => null),
+    getSafeSetting("admin_custom_stats").catch(() => null),
+    getSafeSetting("admin_custom_features").catch(() => null),
+    getSafeSetting("admin_hero_video_settings").catch(() => null),
   ]);
 
   const activeSlides = heroSlides && heroSlides.length > 0 ? heroSlides : mockHeroSlides;
   const activeSlide = activeSlides[0];
+
+  // Dynamic Halls
+  let activeHalls = mockHalls;
+  if (hallsRaw) {
+    try {
+      const parsed = JSON.parse(hallsRaw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        activeHalls = parsed.filter((h: any) => h.isActive !== false);
+      }
+    } catch {}
+  }
+
+  // Dynamic Hero Video & Location
+  let heroVideoSettings = {
+    location: "İstanbul - Gaziosmanpaşa",
+    videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-wedding-couple-walking-in-a-forest-41378-large.mp4",
+  };
+  if (heroVideoRaw) {
+    try {
+      const parsed = JSON.parse(heroVideoRaw);
+      if (parsed && typeof parsed === "object") {
+        heroVideoSettings = { ...heroVideoSettings, ...parsed };
+      }
+    } catch {}
+  }
+
+  // Dynamic Features & Highlights (about-heading / Neden Elmira Davet?)
+  let customFeatures = {
+    badge: "Gaziosmanpaşa Merkezde Prestijli Konum",
+    title: "Bölgenin Standartlarını Zarafetle Yeniden Belirliyoruz",
+    description:
+      settings.aboutText ||
+      "Elmira Davet Salonu olarak, hayatınızın en özel anlarını unutulmaz kılmak için İstanbul Gaziosmanpaşa'da hizmetinizdeyiz. 600 kişilik lüks Kristal Salonumuz ve 300 kişilik büyüleyici Kır Bahçemiz ile aşkınızın en güzel hikayesine ev sahipliği yapıyoruz. Modern mimarimiz, kristal avizelerimiz, gelişmiş akustik ses sistemlerimiz ve usta şeflerimizin hazırladığı gurme lezzetlerle Gaziosmanpaşa ve çevresinde düğün standartlarını yeniden tanımlıyoruz.",
+    buttonText: "Hakkımızda Daha Fazla Bilgi",
+    buttonLink: "/hakkimizda",
+    items: [
+      { id: "feat-1", title: "Kristal Avizeler", description: "6 metre tavan yüksekliği ve görkemli ışık düzeni", icon: "gem" },
+      { id: "feat-2", title: "Ücretsiz Otopark & Vale", description: "Misafirleriniz için stressiz ve konforlu karşılama", icon: "car" },
+      { id: "feat-3", title: "Akustik Mimari & Sahne", description: "Yankısız kristal berraklığında müzik ve canlı orkestra", icon: "music" },
+      { id: "feat-4", title: "Gelin & Damat Süiti", description: "Geniş dinlenme, makyaj ve özel ikram odası", icon: "heart" },
+    ],
+    showcase: {
+      imageUrl: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=1200&q=80",
+      locationBadge: "İstanbul - Gaziosmanpaşa",
+      title: "Unutulmaz Düğünler, Kusursuz Masallar",
+      buttonText: "Galeri",
+      buttonLink: "/galeri",
+    },
+  };
+  if (featuresRaw) {
+    try {
+      const parsed = JSON.parse(featuresRaw);
+      if (parsed && typeof parsed === "object") {
+        customFeatures = { ...customFeatures, ...parsed };
+      }
+    } catch {}
+  }
 
   const activePackages =
     featuredPackages && featuredPackages.length > 0
@@ -237,11 +302,14 @@ export default async function HomePage() {
 
   // Parse page sections config
   let configuredSections: SectionConfig[] = DEFAULT_SECTIONS;
-  if (sectionsSetting?.value) {
+  if (sectionsSetting) {
     try {
-      const parsed = JSON.parse(sectionsSetting.value);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        configuredSections = parsed;
+      const val = typeof sectionsSetting === "string" ? sectionsSetting : (sectionsSetting as any).value;
+      if (val) {
+        const parsed = JSON.parse(val);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          configuredSections = parsed;
+        }
       }
     } catch { }
   }
@@ -259,6 +327,14 @@ export default async function HomePage() {
     { value: 300, suffix: " Kişi", prefix: "", label: "Kır Bahçesi", sublabel: "Yıldızlar altında doğal açık hava" },
     { value: 99, prefix: "%", suffix: "", label: "Misafir Memnuniyeti", sublabel: "Doğrulanmış çift ve aile yorumları" },
   ];
+  if (statsRaw) {
+    try {
+      const parsed = JSON.parse(statsRaw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        statItems = parsed;
+      }
+    } catch {}
+  }
 
   // If CMS Page exists, enrich section titles, descriptions, and stat items from published blocks
   if (cmsPage && cmsPage.status === "PUBLISHED" && Array.isArray(cmsPage.content)) {
@@ -322,13 +398,13 @@ export default async function HomePage() {
               settings.slogan ||
               "İstanbul Gaziosmanpaşa'da hayalinizdeki düğün, kristal avizeler ve büyüleyici kır bahçesiyle gerçeğe dönüşüyor."
             }
-            location="İstanbul - Gaziosmanpaşa"
+            location={heroVideoSettings.location || "İstanbul - Gaziosmanpaşa"}
             posterUrl={
               meta.imageUrl ||
               activeSlide?.imageUrl ||
               "https://images.unsplash.com/photo-1519741497674-611481863552?w=1920&q=85"
             }
-            videoUrl="https://assets.mixkit.co/videos/preview/mixkit-wedding-couple-walking-in-a-forest-41378-large.mp4"
+            videoUrl={heroVideoSettings.videoUrl || "https://assets.mixkit.co/videos/preview/mixkit-wedding-couple-walking-in-a-forest-41378-large.mp4"}
           />
         );
 
@@ -388,9 +464,9 @@ export default async function HomePage() {
             </Reveal>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10">
-              {mockHalls.map((hall, idx) => (
+              {activeHalls.map((hall: any, idx: number) => (
                 <Reveal
-                  key={hall.id}
+                  key={hall.id || idx}
                   direction={idx % 2 === 0 ? "left" : "right"}
                   delay={0.15 * (idx + 1)}
                   distance={30}
@@ -404,140 +480,20 @@ export default async function HomePage() {
 
       case "features":
         return (
-          <section
+          <FeaturesShowcase
             key="features"
-            aria-labelledby="about-heading"
-            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
-          >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-              <Reveal direction="left" delay={0.1} className="space-y-6">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-surface border border-gold/30 text-gold text-xs">
-                  <MapPin className="w-3.5 h-3.5" />
-                  <span>Gaziosmanpaşa Merkezde Prestijli Konum</span>
-                </div>
-
-                <TextReveal
-                  text={meta.title || "Bölgenin Standartlarını Zarafetle Yeniden Belirliyoruz"}
-                  type="words"
-                  highlightWords={["Zarafetle", "Yeniden", "Standartlarını"]}
-                  className="text-3xl sm:text-4xl lg:text-5xl font-heading text-cream leading-tight"
-                  as="h2"
-                />
-
-                <div className="w-16 h-1 bg-gradient-gold rounded-full" />
-
-                <p className="text-text-secondary text-sm sm:text-base leading-relaxed font-sans">
-                  {settings.aboutText ||
-                    "Elmira Davet Salonu olarak, hayatınızın en özel anlarını unutulmaz kılmak için İstanbul Gaziosmanpaşa'da hizmetinizdeyiz. 600 kişilik lüks Kristal Salonumuz ve 300 kişilik büyüleyici Kır Bahçemiz ile aşkınızın en güzel hikayesine ev sahipliği yapıyoruz."}
-                </p>
-
-                {/* Highlights feature bullets */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                  <div className="p-4 rounded-2xl bg-surface border border-border flex items-start gap-3">
-                    <div className="p-2 rounded-xl bg-gold/10 text-gold shrink-0">
-                      <Gem className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h3 className="font-heading text-sm text-cream font-medium">
-                        Kristal Avizeler
-                      </h3>
-                      <p className="text-xs text-text-muted mt-0.5 font-sans">
-                        6 metre tavan yüksekliği ve görkemli ışık düzeni
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-surface border border-border flex items-start gap-3">
-                    <div className="p-2 rounded-xl bg-gold/10 text-gold shrink-0">
-                      <Car className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h3 className="font-heading text-sm text-cream font-medium">
-                        Ücretsiz Otopark & Vale
-                      </h3>
-                      <p className="text-xs text-text-muted mt-0.5 font-sans">
-                        Misafirleriniz için stressiz ve konforlu karşılama
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-surface border border-border flex items-start gap-3">
-                    <div className="p-2 rounded-xl bg-gold/10 text-gold shrink-0">
-                      <Music className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h3 className="font-heading text-sm text-cream font-medium">
-                        Akustik Mimari & Sahne
-                      </h3>
-                      <p className="text-xs text-text-muted mt-0.5 font-sans">
-                        Yankısız kristal berraklığında müzik ve canlı orkestra
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-surface border border-border flex items-start gap-3">
-                    <div className="p-2 rounded-xl bg-gold/10 text-gold shrink-0">
-                      <HeartHandshake className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h3 className="font-heading text-sm text-cream font-medium">
-                        Gelin & Damat Süiti
-                      </h3>
-                      <p className="text-xs text-text-muted mt-0.5 font-sans">
-                        Geniş dinlenme, makyaj ve özel ikram odası
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-2">
-                  <Link
-                    href="/hakkimizda"
-                    className="inline-flex items-center gap-2 text-xs uppercase tracking-wider text-gold hover:text-cream font-semibold transition-colors group"
-                    aria-label="Elmira Davet hakkında daha fazla bilgi edinin"
-                  >
-                    <span>Hakkımızda Daha Fazla Bilgi</span>
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </div>
-              </Reveal>
-
-              {/* Visual Showcase with Subtle Parallax */}
-              <Reveal direction="right" delay={0.2}>
-                <div className="relative">
-                  <Parallax speed={0.08} className="rounded-3xl">
-                    <div className="relative h-[480px] sm:h-[540px] rounded-3xl overflow-hidden border border-border shadow-elevated">
-                      <Image
-                        src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=1200&q=80"
-                        alt="Elmira Davet Salonu Gaziosmanpaşa İç Mekan ve Masa Düzeni"
-                        fill
-                        sizes="(max-width: 1024px) 100vw, 50vw"
-                        className="object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-                      <div className="absolute bottom-6 left-6 right-6 p-5 rounded-2xl bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-between">
-                        <div>
-                          <p className="text-xs uppercase tracking-wider text-gold font-medium">
-                            İstanbul - Gaziosmanpaşa
-                          </p>
-                          <p className="text-base font-heading text-cream mt-0.5">
-                            Unutulmaz Düğünler, Kusursuz Masallar
-                          </p>
-                        </div>
-                        <Link
-                          href="/galeri"
-                          className="px-4 py-2 rounded-xl bg-gradient-gold text-bg-primary text-xs font-semibold uppercase tracking-wider transition-opacity hover:opacity-90"
-                          aria-label="Fotoğraf galerisini aç"
-                        >
-                          Galeri
-                        </Link>
-                      </div>
-                    </div>
-                  </Parallax>
-                </div>
-              </Reveal>
-            </div>
-          </section>
+            badge={customFeatures.badge || meta.subtitle || "Gaziosmanpaşa Merkezde Prestijli Konum"}
+            title={customFeatures.title || meta.title || "Bölgenin Standartlarını Zarafetle Yeniden Belirliyoruz"}
+            description={
+              customFeatures.description ||
+              settings.aboutText ||
+              "Elmira Davet Salonu olarak, hayatınızın en özel anlarını unutulmaz kılmak için İstanbul Gaziosmanpaşa'da hizmetinizdeyiz. 600 kişilik lüks Kristal Salonumuz ve 300 kişilik büyüleyici Kır Bahçemiz ile aşkınızın en güzel hikayesine ev sahipliği yapıyoruz."
+            }
+            buttonText={customFeatures.buttonText || "Hakkımızda Daha Fazla Bilgi"}
+            buttonLink={customFeatures.buttonLink || "/hakkimizda"}
+            items={customFeatures.items}
+            showcase={customFeatures.showcase}
+          />
         );
 
       case "packages":

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getSafeSetting } from "@/lib/local-store";
 import { SectionsClient, PageSectionItem } from "./sections-client";
 
 export const metadata = {
@@ -45,10 +46,10 @@ const DEFAULT_SECTIONS: PageSectionItem[] = [
   },
   {
     id: "features",
-    name: "Neden Elmira Davet? (Avantajlar)",
+    name: "Neden Elmira Davet? (Hakkımızda & Ayrıcalıklar)",
     badge: "AVANTAJLAR",
-    title: "Gaziosmanpaşa'nın En Seçkin Davet Deneyimi",
-    subtitle: "Mimari zarafet, gurme lezzetler ve kusursuz organizasyon bir arada",
+    title: "Bölgenin Standartlarını Zarafetle Yeniden Belirliyoruz",
+    subtitle: "Gaziosmanpaşa Merkezde Prestijli Konum",
     isEnabled: true,
     order: 4,
   },
@@ -85,13 +86,21 @@ export default async function AdminBolumlerPage() {
   let sections: PageSectionItem[] = DEFAULT_SECTIONS;
 
   try {
-    const setting = await prisma.siteSetting.findUnique({
-      where: { key: "home_page_sections" },
-    });
-    if (setting?.value) {
-      const parsed = JSON.parse(setting.value);
+    const rawSafe = await getSafeSetting("home_page_sections");
+    if (rawSafe) {
+      const parsed = JSON.parse(rawSafe);
       if (Array.isArray(parsed) && parsed.length > 0) {
         sections = parsed;
+      }
+    } else {
+      const setting = await prisma.siteSetting.findUnique({
+        where: { key: "home_page_sections" },
+      });
+      if (setting?.value) {
+        const parsed = JSON.parse(setting.value);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          sections = parsed;
+        }
       }
     }
   } catch {}

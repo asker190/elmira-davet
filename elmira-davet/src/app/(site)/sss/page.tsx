@@ -1,4 +1,5 @@
 import { mockFaqs } from "@/lib/mock-data";
+import { getSafeSetting } from "@/lib/local-store";
 import { getPageBySlug, extractStaticFields } from "@/lib/cms/page-service";
 import { HelpCircle, CalendarCheck2, Phone } from "lucide-react";
 import Link from "next/link";
@@ -17,8 +18,22 @@ export async function generateMetadata() {
 }
 
 export default async function FaqPage() {
-  const cmsPage = await getPageBySlug("sss");
+  const [cmsPage, customRaw] = await Promise.all([
+    getPageBySlug("sss"),
+    getSafeSetting("admin_custom_faqs"),
+  ]);
   const page = cmsPage ? extractStaticFields(cmsPage) : { title: "Sıkça Sorulan Sorular", subtitle: "Merak ettiklerinizin cevapları", badgeText: "Aklınıza Takılanlar", heroImageUrl: "", bodyHtml: "", seoTitle: "", seoDescription: "" };
+
+  let faqs = mockFaqs;
+  if (customRaw) {
+    try {
+      const parsed = JSON.parse(customRaw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        faqs = parsed.filter((f: any) => f.isActive !== false);
+      }
+    } catch {}
+  }
+
   return (
     <div className="pt-28 pb-20 space-y-20">
       {/* Header Banner */}
@@ -37,7 +52,7 @@ export default async function FaqPage() {
 
       {/* FAQs List */}
       <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
-        {mockFaqs.map((faq, idx) => (
+        {faqs.map((faq, idx) => (
           <div
             key={idx}
             className="p-6 sm:p-8 rounded-3xl bg-surface border border-border space-y-3 shadow-card hover:border-gold/30 transition-colors"

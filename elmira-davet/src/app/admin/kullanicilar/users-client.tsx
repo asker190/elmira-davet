@@ -18,8 +18,9 @@ import {
   Mail,
   User,
   Sparkles,
+  Pencil,
 } from "lucide-react";
-import { createUser, updateUserRole, deleteUser } from "../actions";
+import { createUser, updateUserRole, deleteUser, updateUser } from "../actions";
 
 interface UserItem {
   id: string;
@@ -59,9 +60,53 @@ export function UsersClient({ initialUsers, initialLogs }: UsersClientProps) {
     role: "EDITOR" as "ADMIN" | "EDITOR",
   });
 
+  // Edit User Modal State
+  const [editingUser, setEditingUser] = useState<UserItem | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "EDITOR" as "ADMIN" | "EDITOR",
+  });
+
   // Log filters
   const [logSearch, setLogSearch] = useState("");
   const [moduleFilter, setModuleFilter] = useState("ALL");
+
+  // Edit user
+  const handleEditUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    if (!editFormData.name.trim() || !editFormData.email.trim()) {
+      toast.error("İsim ve e-posta zorunludur");
+      return;
+    }
+    if (editFormData.password && editFormData.password.length < 6) {
+      toast.error("Yeni şifre en az 6 karakter olmalıdır");
+      return;
+    }
+
+    startTransition(async () => {
+      try {
+        const res = await updateUser(editingUser.id, editFormData);
+        if (res.success) {
+          toast.success(`"${editFormData.name}" kullanıcısı başarıyla güncellendi`);
+          setUsers((prev) =>
+            prev.map((u) =>
+              u.id === editingUser.id
+                ? { ...u, name: editFormData.name, email: editFormData.email, role: editFormData.role }
+                : u
+            )
+          );
+          setEditingUser(null);
+        } else {
+          toast.error(res.error || "Güncellenemedi");
+        }
+      } catch {
+        toast.error("İşlem hatası oluştu");
+      }
+    });
+  };
 
   // Create user
   const handleCreateUser = (e: React.FormEvent) => {
@@ -269,14 +314,32 @@ export function UsersClient({ initialUsers, initialLogs }: UsersClientProps) {
                         </td>
 
                         <td className="py-3.5 px-4 text-right">
-                          <button
-                            onClick={() => handleDeleteUser(usr.id, usr.name)}
-                            disabled={isPending}
-                            className="p-1.5 rounded-lg text-text-muted hover:text-error hover:bg-error/10 transition-colors"
-                            title="Kullanıcıyı Sil"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => {
+                                setEditingUser(usr);
+                                setEditFormData({
+                                  name: usr.name,
+                                  email: usr.email,
+                                  password: "",
+                                  role: usr.role,
+                                });
+                              }}
+                              disabled={isPending}
+                              className="p-1.5 rounded-lg text-text-muted hover:text-gold hover:bg-gold/10 transition-colors cursor-pointer"
+                              title="Kullanıcı Bilgilerini Düzenle"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(usr.id, usr.name)}
+                              disabled={isPending}
+                              className="p-1.5 rounded-lg text-text-muted hover:text-error hover:bg-error/10 transition-colors cursor-pointer"
+                              title="Kullanıcıyı Sil"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -518,6 +581,111 @@ export function UsersClient({ initialUsers, initialLogs }: UsersClientProps) {
                   className="px-5 py-2 text-xs font-semibold bg-gradient-gold text-bg-primary rounded-xl shadow-xs hover:opacity-95 disabled:opacity-50"
                 >
                   {isPending ? "Oluşturuluyor..." : "Kullanıcıyı Oluştur"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: EDIT USER */}
+      {editingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-md bg-surface border border-border rounded-2xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <div className="flex items-center gap-2 text-gold font-heading font-medium text-base">
+                <Pencil className="w-4 h-4" />
+                <span>Kullanıcı Bilgilerini Düzenle</span>
+              </div>
+              <button
+                onClick={() => setEditingUser(null)}
+                className="text-text-muted hover:text-cream text-xs"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleEditUser} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-text-secondary mb-1">
+                  Ad Soyad *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editFormData.name}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, name: e.target.value })
+                  }
+                  className="w-full px-3 py-2 text-xs bg-bg-secondary border border-border rounded-xl text-cream focus:outline-hidden focus:border-gold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-text-secondary mb-1">
+                  E-Posta Adresi *
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={editFormData.email}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, email: e.target.value })
+                  }
+                  className="w-full px-3 py-2 text-xs bg-bg-secondary border border-border rounded-xl text-cream focus:outline-hidden focus:border-gold font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-text-secondary mb-1 flex items-center justify-between">
+                  <span>Yeni Şifre Belirle</span>
+                  <span className="text-[10px] text-text-muted font-normal">(Boş bırakılırsa mevcut şifre değişmez)</span>
+                </label>
+                <input
+                  type="password"
+                  minLength={6}
+                  value={editFormData.password}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, password: e.target.value })
+                  }
+                  placeholder="Değiştirmek istemiyorsanız boş bırakın"
+                  className="w-full px-3 py-2 text-xs bg-bg-secondary border border-border rounded-xl text-cream focus:outline-hidden focus:border-gold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-text-secondary mb-1">
+                  Yetki Rolü
+                </label>
+                <select
+                  value={editFormData.role}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      role: e.target.value as "ADMIN" | "EDITOR",
+                    })
+                  }
+                  className="w-full px-3 py-2 text-xs bg-bg-secondary border border-border rounded-xl text-cream focus:outline-hidden focus:border-gold"
+                >
+                  <option value="EDITOR">Editör (İçerik, Talepler ve Takvim Yönetimi)</option>
+                  <option value="ADMIN">Yönetici (Tam Yetki + Kullanıcı Tanımlama)</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => setEditingUser(null)}
+                  className="px-4 py-2 text-xs font-medium text-text-secondary hover:text-text-primary rounded-xl"
+                >
+                  Vazgeç
+                </button>
+                <button
+                  type="submit"
+                  disabled={isPending}
+                  className="px-5 py-2 text-xs font-semibold bg-gradient-gold text-bg-primary rounded-xl shadow-xs hover:opacity-95 disabled:opacity-50"
+                >
+                  {isPending ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
                 </button>
               </div>
             </form>

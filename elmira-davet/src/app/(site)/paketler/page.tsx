@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getSafeSetting } from "@/lib/local-store";
 import { getPageBySlug, extractStaticFields } from "@/lib/cms/page-service";
 import Link from "next/link";
 import { Check, Star, ArrowRight, HelpCircle } from "lucide-react";
@@ -20,7 +21,7 @@ export async function generateMetadata() {
 }
 
 export default async function PackagesPage() {
-  const [dbPackages, cmsPage] = await Promise.all([
+  const [dbPackages, cmsPage, customRaw] = await Promise.all([
     prisma.package
       .findMany({
         where: { isActive: true },
@@ -33,10 +34,21 @@ export default async function PackagesPage() {
       })
       .catch(() => []),
     getPageBySlug("paketler"),
+    getSafeSetting("admin_custom_packages"),
   ]);
   const page = cmsPage ? extractStaticFields(cmsPage) : { title: "Paketler & Menüler", subtitle: "Size özel konseptler ve menü seçenekleri", badgeText: "Kişiye Özel Konseptler", heroImageUrl: "", bodyHtml: "", seoTitle: "", seoDescription: "" };
 
-  const packages = dbPackages.length > 0 ? dbPackages : mockPackages;
+  let packages: any[] = mockPackages;
+  if (customRaw) {
+    try {
+      const parsed = JSON.parse(customRaw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        packages = parsed.filter((p: any) => p.isActive !== false);
+      }
+    } catch {}
+  } else if (dbPackages.length > 0) {
+    packages = dbPackages;
+  }
 
   const faqs = [
     {
@@ -115,13 +127,13 @@ export default async function PackagesPage() {
                     Paket Detayları:
                   </p>
                   <ul className="space-y-3">
-                    {pkg.features.map((feat) => (
+                    {(pkg.features || []).map((feat: any, fIdx: number) => (
                       <li
-                        key={feat.id}
+                        key={feat?.id || fIdx}
                         className="flex items-start gap-3 text-xs sm:text-sm text-text-secondary"
                       >
                         <Check className="w-4 h-4 text-gold shrink-0 mt-0.5" />
-                        <span>{feat.text}</span>
+                        <span>{typeof feat === "string" ? feat : feat?.text}</span>
                       </li>
                     ))}
                   </ul>

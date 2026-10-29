@@ -18,8 +18,10 @@ import {
   Layers,
   UploadCloud,
   Eye,
+  Loader2,
+  Upload,
 } from "lucide-react";
-import { addGalleryImage, deleteGalleryImage, createGalleryCategory } from "../actions";
+import { addGalleryImage, deleteGalleryImage, createGalleryCategory, saveGalleryOrder } from "../actions";
 
 interface GalleryCategory {
   id: string;
@@ -60,13 +62,13 @@ export function GalleryClient({
 
   // Multi-upload Modal State
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [bulkUrls, setBulkUrls] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(
     categories[0]?.id || "cat-1"
   );
   const [selectedRatio, setSelectedRatio] = useState("16/9");
   const [commonTitle, setCommonTitle] = useState("");
   const [commonAlt, setCommonAlt] = useState("");
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
 
   // New Category Modal
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -80,16 +82,14 @@ export function GalleryClient({
     activeCategory === "ALL" ? true : img.categoryId === activeCategory
   );
 
+  const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
+
   // Handle Multi / Bulk Upload
   const handleBulkUpload = (e: React.FormEvent) => {
     e.preventDefault();
-    const urls = bulkUrls
-      .split("\n")
-      .map((u) => u.trim())
-      .filter((u) => u.startsWith("http"));
 
-    if (urls.length === 0) {
-      toast.error("Lütfen en az bir geçerli görsel URL adresi girin");
+    if (uploadedUrls.length === 0) {
+      toast.error("Lütfen bilgisayarınızdan en az bir fotoğraf yükleyin.");
       return;
     }
 
@@ -97,8 +97,8 @@ export function GalleryClient({
       let successCount = 0;
       const newItems: GalleryImageItem[] = [];
 
-      for (let i = 0; i < urls.length; i++) {
-        const url = urls[i];
+      for (let i = 0; i < uploadedUrls.length; i++) {
+        const url = uploadedUrls[i];
         const res = await addGalleryImage({
           imageUrl: url,
           categoryId: selectedCategory,
@@ -128,7 +128,7 @@ export function GalleryClient({
         toast.success(`${successCount} adet fotoğraf galeriye eklendi`);
         setImages((prev) => [...newItems, ...prev]);
         setIsUploadModalOpen(false);
-        setBulkUrls("");
+        setUploadedUrls([]);
         setCommonTitle("");
         setCommonAlt("");
       } else {
@@ -166,7 +166,15 @@ export function GalleryClient({
     copy[index] = copy[targetIdx];
     copy[targetIdx] = temp;
     setImages(copy);
-    toast.success("Görsel sıralaması güncellendi");
+
+    startTransition(async () => {
+      try {
+        await saveGalleryOrder(copy);
+        toast.success("Görsel sıralaması kaydedildi");
+      } catch {
+        toast.error("Sıralama kaydedilemedi");
+      }
+    });
   };
 
   // Add Category Handler
@@ -366,19 +374,102 @@ export function GalleryClient({
             </div>
 
             <form onSubmit={handleBulkUpload} className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-text-secondary mb-1">
-                  Görsel URL Adresleri (Her satıra bir adet URL) *
+              {/* Computer Multi-file Upload */}
+              <div className="p-4 rounded-xl bg-bg-secondary border border-dashed border-gold/40 hover:border-gold/80 text-center transition-all bg-surface/50">
+                <label className="cursor-pointer block space-y-2">
+                  <div className="w-10 h-10 rounded-xl bg-gold/15 border border-gold/30 flex items-center justify-center text-gold mx-auto">
+                    {isUploadingFiles ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Upload className="w-5 h-5" />
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold text-cream block">
+                      Bilgisayarınızdan Fotoğraf Seçin (Tekli veya Çoklu)
+                    </span>
+                    <span className="text-[11px] text-text-muted block">
+                      Seçilen fotoğraflar sunucuya yüklenir ve otomatik olarak aşağıdaki listeye eklenir.
+                    </span>
+                  </div>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    disabled={isUploadingFiles}
+                    onChange={async (e) => {
+                      const files = e.target.files;
+                      if (!files || files.length === 0) return;
+                      setIsUploadingFiles(true);
+                      const toastId = toast.loading(`${files.length} fotoğraf yükleniyor...`);
+                      const uploadedUrls: string[] = [];
+                      try {
+                        for (let i = 0; i < files.length; i++) {
+                          const fd = new FormData();
+                          fd.append("file", files[i]);
+                          const res = await fetch("/api/upload", { method: "POST", body: fd });
+                          const json = await res.json();
+                          if (json.success && json.url) {
+                            uploadedUrls.push(json.url);
+                          }
+                        }
+                        if (uploadedUrls.length > 0) {
+                          setUploadedUrls((prev) => [...prev, ...uploadedUrls]);
+                          toast.success(`${uploadedUrls.length} fotoğraf bilgisayardan başarıyla yüklendi!`, { id: toastId });
+                        } else {
+                          toast.error("Fotoğraflar yüklenemedi", { id: toastId });
+                        }
+                      } catch {
+                        toast.error("Yükleme sırasında hata oluştu", { id: toastId });
+                      } finally {
+                        setIsUploadingFiles(false);
+                      }
+                    }}
+                    className="hidden"
+                  />
                 </label>
-                <textarea
-                  required
-                  rows={4}
-                  value={bulkUrls}
-                  onChange={(e) => setBulkUrls(e.target.value)}
-                  placeholder={`https://images.unsplash.com/photo-1519741497674...\nhttps://images.unsplash.com/photo-1464366400600...\nhttps://images.unsplash.com/photo-1511795409834...`}
-                  className="w-full px-3 py-2 text-xs bg-bg-secondary border border-border rounded-xl text-cream focus:outline-hidden focus:border-gold font-mono"
-                />
               </div>
+
+              {/* Uploaded Photos Preview List */}
+              {uploadedUrls.length > 0 ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs text-cream font-medium">
+                    <span>Yüklenecek Fotoğraflar ({uploadedUrls.length})</span>
+                    <button
+                      type="button"
+                      onClick={() => setUploadedUrls([])}
+                      className="text-[11px] text-red-400 hover:underline"
+                    >
+                      Tümünü Temizle
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 max-h-48 overflow-y-auto p-1 bg-bg-secondary rounded-xl border border-border">
+                    {uploadedUrls.map((url, idx) => (
+                      <div
+                        key={idx}
+                        className="relative aspect-video rounded-lg overflow-hidden border border-gold/30 group bg-surface"
+                      >
+                        <img
+                          src={url}
+                          alt="Yüklenen görsel"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setUploadedUrls(uploadedUrls.filter((_, i) => i !== idx))}
+                          className="absolute top-1 right-1 p-1 rounded-full bg-red-600/90 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 rounded-xl bg-surface/50 border border-border text-center text-xs text-text-muted">
+                  Yukarıdaki butona tıklayarak bilgisayarınızdan tekli veya çoklu fotoğraf seçin.
+                </div>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>

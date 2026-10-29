@@ -7,15 +7,31 @@ import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
+import { getSafeSetting } from "@/lib/local-store";
+
 interface HallDetailPageProps {
   params: Promise<{ slug: string }>;
+}
+
+async function getHallBySlug(slug: string) {
+  let halls = mockHalls;
+  try {
+    const raw = await getSafeSetting("admin_custom_halls");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        halls = parsed;
+      }
+    }
+  } catch {}
+  return halls.find((h: any) => h.slug === slug);
 }
 
 export async function generateMetadata({
   params,
 }: HallDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const hall = mockHalls.find((h) => h.slug === slug);
+  const hall = await getHallBySlug(slug);
 
   if (!hall) {
     return { title: "Salon Bulunamadı | Elmira Davet" };
@@ -29,7 +45,7 @@ export async function generateMetadata({
 
 export default async function HallDetailPage({ params }: HallDetailPageProps) {
   const { slug } = await params;
-  const hall = mockHalls.find((h) => h.slug === slug);
+  const hall = await getHallBySlug(slug);
 
   if (!hall) {
     notFound();

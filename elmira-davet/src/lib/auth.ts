@@ -110,13 +110,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         // Default admin credentials fallback for dev/preview
         if (
-          email === "admin@elmiradavet.com" &&
+          (email === "admin@elmiradavet.com" || email === "admin@elmira.com") &&
           (password === "admin123" || password === "admin123456" || password === "admin")
         ) {
           return {
             id: "default-admin",
             name: "Yönetici Admin",
-            email: "admin@elmiradavet.com",
+            email: email,
             role: "ADMIN" as Role,
           };
         }

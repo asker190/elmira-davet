@@ -33,8 +33,37 @@ export default async function GalleryPage() {
   ]);
   const page = cmsPage ? extractStaticFields(cmsPage) : { title: "Fotoğraf & Video Galerisi", subtitle: "Kristal Salon ve Kır Bahçesi görüntüleri", badgeText: "Görsel Deneyim", heroImageUrl: "", bodyHtml: "", seoTitle: "", seoDescription: "" };
 
-  const categories = dbCategories.length > 0 ? dbCategories : mockGalleryCategories;
-  const images = dbImages.length > 0 ? dbImages : mockGalleryImages;
+  const { getSafeSetting } = await import("@/lib/local-store");
+  const [customGalleryRaw, customCategoriesRaw] = await Promise.all([
+    getSafeSetting("admin_custom_gallery"),
+    getSafeSetting("admin_custom_gallery_categories"),
+  ]);
+
+  let categories = dbCategories.length > 0 ? dbCategories : mockGalleryCategories;
+  if (customCategoriesRaw) {
+    try {
+      const parsedCats = JSON.parse(customCategoriesRaw);
+      if (Array.isArray(parsedCats) && parsedCats.length > 0) {
+        categories = [
+          ...categories,
+          ...parsedCats.filter((pc: any) => !categories.some((c: any) => c.id === pc.id || c.slug === pc.slug)),
+        ];
+      }
+    } catch {}
+  }
+
+  let images: any[] = mockGalleryImages;
+
+  if (customGalleryRaw) {
+    try {
+      const parsed = JSON.parse(customGalleryRaw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        images = parsed;
+      }
+    } catch {}
+  } else if (dbImages.length > 0) {
+    images = dbImages;
+  }
 
   return (
     <div className="pt-28 pb-20 space-y-12">

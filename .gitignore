@@ -13,6 +13,8 @@ elmira-davet/build/
 # Environment files
 .env*
 !.env.example
+!.env.deploy.example
+.deploy_temp/
 elmira-davet/.env*
 !elmira-davet/.env.example
 
