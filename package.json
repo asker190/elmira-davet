@@ -2,6 +2,9 @@
   "name": "elmira-davet-workspace",
   "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "elmira-davet"
+  ],
   "scripts": {
     "dev": "npm --prefix elmira-davet run dev",
     "build": "npm --prefix elmira-davet run build",

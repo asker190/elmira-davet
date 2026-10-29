@@ -34,6 +34,8 @@ declare module "@auth/core/jwt" {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  secret: process.env.AUTH_SECRET || "elmira-davet-super-secret-key-2026-auth-token-998877",
+  trustHost: true,
   pages: {
     signIn: "/admin/giris",
   },
